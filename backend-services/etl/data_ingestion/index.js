@@ -1,0 +1,1 @@
+// Stream data from Json as alternative for Honepot real-time logs
