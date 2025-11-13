@@ -6,7 +6,7 @@ useEffect(() => {
         console.time('footer-mounted');
     }, []);
     return (
-        <footer className="bg-neutral-100 dark:bg-black text-neutral-300 border-t border-neutral-800 flex justify-center items-center w-full mt-auto min-h-[150px]">
+        <footer className="bg-white dark:bg-black text-neutral-300 border-t border-neutral-200 dark:border-neutral-800 flex justify-center items-center w-full mt-auto min-h-[150px]">
             <div className="container flex flex-col lg:flex-row justify-between py-12 px-9 sm:px-9 md:px-8 mx-auto max-w-7xl">
 
                 {/* Left section: Logo and copyright */}
