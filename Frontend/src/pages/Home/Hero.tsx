@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 export default function Hero() {
 const navigate = useNavigate();
   return (
-    <section className="relative overflow-hidden text-neutral-900 dark:text-neutral-100">
+    <section id="hero" className="relative overflow-hidden text-neutral-900 dark:text-neutral-100">
         <div className="pointer-events-none absolute inset-0 z-0">
             <Aurora colorStops={["#d6e6ff", "#fbe0e0", "#f2eaf7"]} blend={1} amplitude={1} speed={0.7} />
         </div>
