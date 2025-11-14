@@ -17,8 +17,13 @@ const navigate = useNavigate();
                 <InteractiveHoverButton>Explore Dashboard</InteractiveHoverButton>
             </a>
             <div className="flex mt-[15%] w-full max-w-6xl xl:w-4xl mask-image fade-mask">
-                <img src="/honeypage.png" alt="honeypage"
-                    className="rounded-t-4xl border-4 border-neutral-600/20 w-full h-auto object-contain"
+                <img
+                    src="/honeypage-light.png" alt="honeypage"
+                    className="block dark:hidden rounded-t-4xl border-4 border-neutral-400/20 w-full h-auto object-contain"
+                />
+                <img
+                    src="/honeypage.png" alt="honeypage dark"
+                    className="hidden dark:block rounded-t-4xl border-4 border-neutral-600/20 w-full h-auto object-contain"
                 />
             </div>
         </div>
