@@ -1,0 +1,78 @@
+{
+  "autorun": false,
+  "autokill": true,
+  "terminals": [
+    {
+      "name": "Kafka",
+      "description": "Start Kafka broker and zookeeper service container",
+      "icon": "circuit-board",
+      "color": "terminal.ansiRed",
+      "cwd": "[workspaceFolder]/backend-services/etl/kafka",
+      "command": "docker compose up -d",
+      "execute": false
+    },
+    {
+      "name": "Data Ingestion",
+      "description": "Run data ingestion microservice",
+      "icon": "database",
+      "color": "terminal.ansiMagenta",
+      "cwd": "[workspaceFolder]/backend-services/etl/data-ingestion",
+      "command": "nodemon start",
+      "execute": false
+    },
+    {
+      "name": "ETL Service (Core)",
+      "description": "ETL Core logic or transformation service",
+      "icon": "gear",
+      "color": "terminal.ansiYellow",
+      "cwd": "[workspaceFolder]/backend-services/etl/etl-service",
+      "command": "nodemon start",
+      "execute": false
+    },
+    {
+      "name": "ML Service",
+      "description": "Machine learning microservice",
+      "icon": "beaker",
+      "color": "terminal.ansiGreen",
+      "cwd": "[workspaceFolder]/backend-services/ml-service",
+      "command": "uvicorn ml_api:app --reload",
+      "execute": false
+    },
+    {
+      "name": "Log Service",
+      "description": "Handles logging or monitoring service",
+      "icon": "book",
+      "color": "terminal.ansiBlue",
+      "cwd": "[workspaceFolder]/backend-services/log-service",
+      "command": "daphne -p 8001 log_service.asgi:application",
+      "execute": false
+    },
+    {
+      "name": "Gateway",
+      "description": "Handles Gateway service",
+      "icon": "server",
+      "color": "terminal.ansiGreen",
+      "cwd": "[workspaceFolder]/backend-services/gateway/src",
+      "command": "nodemon start",
+      "execute": false
+    },
+    {
+      "name": "Auth Service",
+      "description": "Handles Auth service",
+      "icon": "key",
+      "color": "terminal.ansiYellow",
+      "cwd": "[workspaceFolder]/backend-services/auth-service",
+      "command": "python manage.py runserver 0.0.0.0:8005",
+      "execute": false
+    },
+    {
+      "name": "Frontend",
+      "description": "Frontend service",
+      "icon": "vm",
+      "color": "terminal.ansiCyan",
+      "cwd": "[workspaceFolder]/Frontend",
+      "command": "npm run dev",
+      "execute": false
+    }
+  ]
+}
