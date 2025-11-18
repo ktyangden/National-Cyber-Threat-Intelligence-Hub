@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # 1. Frontend (React + Vite)
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:80"  # Access app at localhost:5173
+    depends_on:
+      - django-api
+      - node-api
+
+  # 2. Backend (Django)
+  django-api:
+    build: ./backend-django
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend-django:/app # Hot-reload: Changes in code reflect instantly
+    environment:
+      - DB_HOST=db
+
+  # 3. Backend (Node.js)
+  node-api:
+    build: ./backend-node
+    ports:
+      - "3001:3000" # Maps internal 3000 to external 3001
+    volumes:
+      - ./backend-node:/app
+
+  # 4. Database (Postgres - Recommended for Django)
+  db:
+    image: postgres:13-alpine
+    environment:
+      - POSTGRES_DB=threathub
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
