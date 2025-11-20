@@ -3,6 +3,7 @@ import {BrowserRouter as Router, Routes, Route, Navigate} from 'react-router-dom
 import { SimpleHeader } from "./components/Navbar.tsx";
 import Home from "./pages/Home.tsx"
 import Footer from "./components/Footer.tsx";
+import About from './pages/About.tsx';
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/home" replace />} />
             <Route path="/home" element={<Home />} />
+            <Route path="/about" element={<About />} />
           </Routes>
           <Footer />
         </div>
