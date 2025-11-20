@@ -1,10 +1,11 @@
 import ProfileCard from "@/components/ProfileCard";
+import { TextRoll } from "@/components/ui/text-roll";
 
 export default function AboutTeam() {
   return (
     <section id="about-team" className="overflow-hidden text-neutral-900 dark:text-neutral-100 my-15 flex flex-col items-center">
         <div className="w-full flex justify-center items-center">
-            <h1 className="text-7xl mt-12 font-semibold">Our Team</h1>
+            <TextRoll className="text-7xl mt-12 font-semibold uppercase leading-[0.8] tracking-[-0.03em] transition-colors cursor-default">Our Team</TextRoll>
         </div>
 
         <div className="w-full flex py-20 justify-center">
