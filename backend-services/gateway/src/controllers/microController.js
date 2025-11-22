@@ -23,4 +23,46 @@ const log = async (req, res) => {
     }
 };
 
-module.exports = { ml, log };
+const getPhishingDomains = async (req, res) => {
+    try {
+        const url = "https://raw.githubusercontent.com/mitchellkrogza/Phishing.Database/master/phishing-domains-ACTIVE.txt";
+        const response = await axios.get(url, {
+            headers: {
+                'Accept': 'text/plain',
+            },
+        });
+        
+        // Split by newline and filter out empty lines
+        const allDomains = response.data
+            .split("\n")
+            .map(domain => domain.trim())
+            .filter(Boolean);
+        
+        // Pagination parameters
+        const limit = parseInt(req.query.limit) || 100; // Default 100, max 1000
+        const page = parseInt(req.query.page) || 1;
+        const maxLimit = 1000;
+        const safeLimit = Math.min(limit, maxLimit);
+        const offset = (page - 1) * safeLimit;
+        
+        // Get paginated results
+        const paginatedDomains = allDomains.slice(offset, offset + safeLimit);
+        
+        res.status(200).json({ 
+            domains: paginatedDomains,
+            pagination: {
+                total: allDomains.length,
+                page: page,
+                limit: safeLimit,
+                totalPages: Math.ceil(allDomains.length / safeLimit),
+                hasNext: offset + safeLimit < allDomains.length,
+                hasPrev: page > 1
+            }
+        });
+    } catch (error) {
+        console.log("Server Error: ", error);
+        res.status(500).json({ error: "Failed to fetch phishing domains" });
+    }
+};
+
+module.exports = { ml, log, getPhishingDomains };

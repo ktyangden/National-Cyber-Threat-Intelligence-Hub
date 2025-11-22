@@ -7,6 +7,7 @@ const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const microRoutes = require("./routes/microRoutes");
+const extRoutes = require("./routes/extRoutes");
 
 dotenv.config();
 const app = express();
@@ -23,6 +24,7 @@ app.use(cookieParser());
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
 app.use('/micro', microRoutes);
+app.use('/api/v1/ext', extRoutes);
 
 // Default Route
 app.get('/', (req, res) => {
@@ -35,5 +37,5 @@ mongoose.connect(process.env.MONGO_URI)
     .catch((err) => console.error(err));
 
 // Server
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => console.log(`Gateway Server running on port ${PORT}`));

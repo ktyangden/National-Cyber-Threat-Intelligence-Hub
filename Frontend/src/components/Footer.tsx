@@ -3,7 +3,10 @@ import { useEffect } from 'react';
 export default function Footer() {
 const navigate = useNavigate();
 useEffect(() => {
-        console.time('footer-mounted');
+        // Timer removed to avoid duplicate timer warnings
+        return () => {
+            // Cleanup if needed
+        };
     }, []);
     return (
         <footer className="bg-white dark:bg-black text-neutral-300 border-t border-neutral-200 dark:border-neutral-800 flex justify-center items-center w-full mt-auto min-h-[150px]">

@@ -4,6 +4,7 @@ import { SimpleHeader } from "./components/Navbar.tsx";
 import Home from "./pages/Home.tsx"
 import Footer from "./components/Footer.tsx";
 import About from './pages/About.tsx';
+import Feeds from './pages/Feeds.tsx';
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
             <Route path="/" element={<Navigate to="/home" replace />} />
             <Route path="/home" element={<Home />} />
             <Route path="/about" element={<About />} />
+            <Route path="/threat-feeds" element={<Feeds />} />
           </Routes>
           <Footer />
         </div>
