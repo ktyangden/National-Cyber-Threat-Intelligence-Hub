@@ -24,6 +24,10 @@ INSTALLED_APPS = [
     # Third-party apps
     "rest_framework",               # Django REST Framework (API layer)
     "corsheaders",                  # CORS for frontend communication
+
+    # Your apps
+    "userAuth",
+    "microAuth",
 ]
 
 # -----------------------------

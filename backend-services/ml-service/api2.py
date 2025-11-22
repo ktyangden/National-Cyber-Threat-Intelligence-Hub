@@ -1,8 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 import math
+
+from g2s_auth import verify_g2s_token
 
 app = FastAPI(title="Adaptive Honeypot Log Classifier", version="3.0")
 
@@ -182,7 +184,7 @@ class InputData(BaseModel):
 # ========================== Endpoint ==========================
 
 @app.post("/predict")
-async def predict_attack(data: InputData):
+async def predict_attack(data: InputData, g2s=Depends(verify_g2s_token)):
     """Predict if a login attempt is benign, suspicious, or attack."""
     current_log = data.current_log.dict()
     recent_logs = [log.dict() for log in data.recent_logs]

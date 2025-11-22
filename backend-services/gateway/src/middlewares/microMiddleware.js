@@ -1,13 +1,15 @@
-const jwt = require("jsonwebtoken");
+const axios = require("axios");
+//const jwt = require("jsonwebtoken");
 
+// const SERVICE_KEYS = {
+//   mlService: process.env.ML_Service_Key || "ml-secret-key",
+//   logService: process.env.Log_Service_Key || "log-secret-key"
+// };
+
+// Tokens in-Memory
 const tokenCache = {};
 
-const SERVICE_KEYS = {
-  dataService: process.env.DATA_SERVICE_KEY || "Data_Service_Key",
-  otherService: process.env.OTHER_SERVICE_KEY || "Other_Service_Key"
-};
-
-// Token TTL
+// Token TTL - 5 minutes
 const TOKEN_TTL = 60 * 5;
 
 function isTokenValid(entry) {
@@ -18,8 +20,11 @@ module.exports = async function (req, res, next) {
   try {
     let targetService = null;
 
-    if (req.path.includes("getData") || req.path.includes("changeSecret")) {
-      targetService = "dataService";
+    if (req.path.includes("ml")) {
+      targetService = "mlService";
+    }
+    else if (req.path.includes("log")) {
+      targetService = "logService";
     }
 
     if (!targetService) {
@@ -31,14 +36,15 @@ module.exports = async function (req, res, next) {
     let tokenEntry = tokenCache[targetService];
 
     if (!isTokenValid(tokenEntry)) {
-      const serviceKey = SERVICE_KEYS[targetService];
-      if (!serviceKey) throw new Error(`No service key found for ${targetService}`);
+      console.log(`Fetching new G2S token from Auth Service for ${targetService}...`);
 
-      const token = jwt.sign({ service: "gateway", target: targetService }, serviceKey, { expiresIn: TOKEN_TTL });
+      const response = await axios.post(
+        "http://localhost:8005/micro/auth/getG2S",
+        { targetService }
+      );
 
-      console.log(`New G2S Token for ${targetService}: `, token);
-  
-      
+      const token = response.data.token;
+
       tokenEntry = { token, expiresAt: Date.now() + TOKEN_TTL * 1000 };
       tokenCache[targetService] = tokenEntry;
     }
@@ -46,7 +52,7 @@ module.exports = async function (req, res, next) {
     // Attach token to request 
     req.g2sToken = tokenEntry.token;
 
-    console.log("Token in cache: ", tokenCache);
+    //console.log("Token in cache: ", tokenCache);
 
     next();
   } catch (error) {

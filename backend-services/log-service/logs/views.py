@@ -5,7 +5,7 @@ from asgiref.sync import async_to_sync
 
 @api_view(['POST'])
 def send_log(request):
-    log_data = request.data
+    log_data = request.data.get("classifiedLog")
 
     # Broadcast this log to all connected WebSocket clients
     channel_layer = get_channel_layer()

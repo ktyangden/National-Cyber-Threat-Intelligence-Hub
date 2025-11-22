@@ -5,6 +5,7 @@ def home(request):
     return JsonResponse({"message": "Auth Service API running"})
 
 urlpatterns = [
-    path("api/auth/", include("authentication.urls")),
+    path("api/auth/", include("userAuth.urls")),
+    path("micro/auth/", include("microAuth.urls")),
     path('', home ),
 ]

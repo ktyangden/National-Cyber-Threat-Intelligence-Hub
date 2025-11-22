@@ -30,24 +30,6 @@
       "execute": false
     },
     {
-      "name": "ML Service",
-      "description": "Machine learning microservice",
-      "icon": "beaker",
-      "color": "terminal.ansiGreen",
-      "cwd": "[workspaceFolder]/backend-services/ml-service",
-      "command": "uvicorn ml_api:app --reload",
-      "execute": false
-    },
-    {
-      "name": "Log Service",
-      "description": "Handles logging or monitoring service",
-      "icon": "book",
-      "color": "terminal.ansiBlue",
-      "cwd": "[workspaceFolder]/backend-services/log-service",
-      "command": "daphne -p 8001 log_service.asgi:application",
-      "execute": false
-    },
-    {
       "name": "Gateway",
       "description": "Handles Gateway service",
       "icon": "server",
@@ -63,6 +45,24 @@
       "color": "terminal.ansiYellow",
       "cwd": "[workspaceFolder]/backend-services/auth-service",
       "command": "python manage.py runserver 0.0.0.0:8005",
+      "execute": false
+    },
+    {
+      "name": "ML Service",
+      "description": "Machine learning microservice",
+      "icon": "beaker",
+      "color": "terminal.ansiGreen",
+      "cwd": "[workspaceFolder]/backend-services/ml-service",
+      "command": "uvicorn api2:app --reload",
+      "execute": false
+    },
+    {
+      "name": "Log Service",
+      "description": "Handles logging or monitoring service",
+      "icon": "book",
+      "color": "terminal.ansiBlue",
+      "cwd": "[workspaceFolder]/backend-services/log-service",
+      "command": "daphne -p 8001 log_service.asgi:application",
       "execute": false
     },
     {
