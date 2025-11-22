@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser");
 
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
+const microRoutes = require("./routes/microRoutes");
 
 dotenv.config();
 const app = express();
@@ -21,6 +22,7 @@ app.use(cookieParser());
 // Routes branching
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
+app.use('/micro', microRoutes);
 
 // Default Route
 app.get('/', (req, res) => {
