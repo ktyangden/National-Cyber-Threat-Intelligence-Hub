@@ -18,11 +18,11 @@ const navigate = useNavigate();
             </a>
             <div className="flex mt-[15%] w-full max-w-6xl xl:w-4xl mask-image fade-mask">
                 <img
-                    src="/honeypage-light.png" alt="honeypage"
+                    src="https://res.cloudinary.com/dykzzd9sy/image/upload/v1763830935/honeypage-light_k0vz2z.png" alt="honeypage"
                     className="block dark:hidden rounded-t-4xl border-4 border-neutral-400/20 w-full h-auto object-contain"
                 />
                 <img
-                    src="/honeypage.png" alt="honeypage dark"
+                    src="https://res.cloudinary.com/dykzzd9sy/image/upload/v1763830934/honeypage_k7ousa.png" alt="honeypage dark"
                     className="hidden dark:block rounded-t-4xl border-4 border-neutral-600/20 w-full h-auto object-contain"
                 />
             </div>

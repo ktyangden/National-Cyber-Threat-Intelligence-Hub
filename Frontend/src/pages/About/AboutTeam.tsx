@@ -5,7 +5,7 @@ export default function AboutTeam() {
   return (
     <section id="about-team" className="overflow-hidden text-neutral-900 dark:text-neutral-100 my-15 flex flex-col items-center">
         <div className="w-full flex justify-center items-center">
-            <TextRoll className="text-7xl mt-12 font-semibold uppercase leading-[0.8] tracking-[-0.03em] transition-colors cursor-default">Our Team</TextRoll>
+            <TextRoll className="text-4xl sm:text-6xl mt-12 font-semibold uppercase leading-[0.8] tracking-[-0.03em] transition-colors cursor-default text-center">Our Team</TextRoll>
         </div>
 
         <div className="w-full flex py-20 justify-center">
