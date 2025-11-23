@@ -29,7 +29,7 @@ Make sure you have the following installed:
 Before running the backend services for the first time, install required Python libraries:
 
 ```bash
-pip install django djangorestframework djangorestframework-simplejwt django-cors-headers pymongo bson requests channels PyJWT asgiref fastapi pydantic uvicorn
+pip install daphne django djangorestframework djangorestframework-simplejwt django-cors-headers pymongo requests channels PyJWT asgiref fastapi pydantic uvicorn
 ```
 
 These libraries are required for:
