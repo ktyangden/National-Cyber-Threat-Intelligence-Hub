@@ -5,6 +5,7 @@ import Home from "./pages/Home.tsx"
 import Footer from "./components/Footer.tsx";
 import About from './pages/About.tsx';
 import Feeds from './pages/Feeds.tsx';
+import Honey from './pages/Honey.tsx';
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
             <Route path="/home" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/threat-feeds" element={<Feeds />} />
+            <Route path="/honeypage" element={<Honey />} />
           </Routes>
           <Footer />
         </div>

@@ -147,10 +147,10 @@ export default function Phishes() {
         </div>
       ) : (
         <div className="border rounded-lg bg-card h-150 flex flex-col">
-          <div className="overflow-x-auto flex-1 overflow-y-scroll">
+          <div className="overflow-x-auto sm:overflow-visible flex-1 overflow-y-scroll">
             <table className="w-full">
-              <thead className="bg-muted sticky top-0 border-b z-10">
-                <tr>
+              <thead className="hidden sm:table-header-group bg-muted sticky top-0 border-b z-10">
+                <tr className="block sm:table-row border-b sm:border-0 sm:hover:bg-muted/50 hover:bg-muted/30 transition-colors">
                   <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     #
                   </th>
@@ -170,31 +170,31 @@ export default function Phishes() {
               </thead>
               <tbody className="divide-y divide-border">
                 {filteredDomains.length === 0 ? (
-                  <tr>
+                  <tr className="block sm:table-row border-b sm:border-0 sm:hover:bg-muted/50 hover:bg-muted/30 transition-colors">
                     <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
                       {searchQuery ? 'No domains match your search' : 'No phishing domains found'}
                     </td>
                   </tr>
                 ) : (
                   filteredDomains.map((item, index) => (
-                    <tr key={`${item.domain}-${index}`} className="hover:bg-muted/50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                    <tr key={`${item.domain}-${index}`} className="block sm:table-row border-b sm:border-0 sm:hover:bg-muted/50 transition-colors">
+                      <td data-label="#" className="block sm:table-cell px-6 py-4 text-sm whitespace-nowrap before:content-[attr(data-label)] before:font-medium before:text-muted-foreground before:inline-block before:pr-3 sm:before:hidden">
                         {index + 1}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td data-label="Domain" className="block sm:table-cell px-6 py-4 text-sm whitespace-nowrap before:content-[attr(data-label)] before:font-medium before:text-muted-foreground before:inline-block before:pr-3 sm:before:hidden">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-mono text-foreground">{item.domain}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                      <td data-label="First Seen" className="block sm:table-cell px-6 py-4 text-sm whitespace-nowrap before:content-[attr(data-label)] before:font-medium before:text-muted-foreground before:inline-block before:pr-3 sm:before:hidden">
                         {item.firstSeen}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td data-label="Status" className="block sm:table-cell px-6 py-4 text-sm whitespace-nowrap before:content-[attr(data-label)] before:font-medium before:text-muted-foreground before:inline-block before:pr-3 sm:before:hidden">
                         <span className="px-2 py-0.5 text-xs bg-red-500/10 text-red-600 dark:text-red-400 rounded">
                           {item.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                      <td data-label="Source" className="block sm:table-cell px-6 py-4 text-sm whitespace-nowrap before:content-[attr(data-label)] before:font-medium before:text-muted-foreground before:inline-block before:pr-3 sm:before:hidden">
                         {item.source}
                       </td>
                     </tr>

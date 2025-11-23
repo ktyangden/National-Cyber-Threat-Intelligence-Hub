@@ -14,10 +14,11 @@ Make sure you have the following installed:
 
 ## 🔄 **Open Preconfigured Terminals**
 
-1. Close all existing terminals
-2. Press **`Ctrl + Shift + P`**
-3. Search for: **`Terminals: Run`**
-4. Run the workspace terminals configuration
+1. Install Terminal Manager Extensions in your IDE (Icon same as Terminal)
+2. Close all existing terminals
+3. Press **`Ctrl + Shift + P`**
+4. Search for: **`Terminals: Run`**
+5. Run the workspace terminals configuration
 
    * This opens multiple terminals with pre-written commands for each microservice
 
@@ -28,7 +29,7 @@ Make sure you have the following installed:
 Before running the backend services for the first time, install required Python libraries:
 
 ```bash
-pip install django djangorestframework pymongo bson requests channels PyJWT asgiref fastapi pydantic uvicorn
+pip install django djangorestframework djangorestframework-simplejwt django-cors-headers pymongo bson requests channels PyJWT asgiref fastapi pydantic uvicorn
 ```
 
 These libraries are required for:

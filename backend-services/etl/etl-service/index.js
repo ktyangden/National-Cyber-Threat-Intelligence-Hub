@@ -2,13 +2,15 @@
 
 import { Kafka } from "kafkajs";
 import axios from "axios";
-
+import dotenv from 'dotenv';
 // Kafka consumer 
 const kafka = new Kafka({ brokers: ["localhost:9092"] });
 const consumer = kafka.consumer({ groupId: "log-consumers" });
 
 // Store logs in-memory for the last 1 minute
 let recentLogs = [];
+dotenv.config();
+const GatewayPORT = process.env.Gateway_PORT || 3002;
 
 // Helper function to clean up old logs
 function pruneOldLogs() {
@@ -63,12 +65,18 @@ await consumer.run({
 
     // Send log to ML-service for Classification
     try {
-      const res = await axios.post("http://localhost:8080/micro/ml", payload);      
-      const classifiedLog = res.data.classifiedLog;
+      const res = await axios.post(`http://localhost:${GatewayPORT}/micro/ml`, payload);      
+      const classifiedLog = res.data?.classifiedLog;
+
+      // Validate classifiedLog exists before sending
+      if (!classifiedLog) {
+        console.error("Error: classifiedLog is missing from ML service response");
+        return;
+      }
 
       // Send classified logs to Log-service
       try {
-        await axios.post("http://localhost:8080/micro/log", classifiedLog);
+        await axios.post(`http://localhost:${GatewayPORT}/micro/log`, { classifiedLog });
       } catch (err) {
         console.error("Error calling Gateway|Log:", err.message);
       }

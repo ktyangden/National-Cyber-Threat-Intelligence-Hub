@@ -13,8 +13,16 @@ const ml = async (req, res) => {
 
 const log = async (req, res) => {
     const { classifiedLog } = req.body;
+    
+    // Validate that classifiedLog exists
+    if (!classifiedLog) {
+        console.log("Warning: classifiedLog is missing or null in request body");
+        return res.status(400).json({ error: "classifiedLog is required" });
+    }
+    
     try {
-        await axios.post("http://localhost:8001/send-log", classifiedLog, {headers: { Authorization: `Bearer ${req.g2sToken}`}});
+        // Log service expects { classifiedLog: ... } format
+        await axios.post("http://localhost:8001/send-log", { classifiedLog }, {headers: { Authorization: `Bearer ${req.g2sToken}`}});
         res.status(201).json({ 'message': "Success" });
 
     } catch (error) {
