@@ -1,179 +1,346 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import { RefreshCw, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import MapGL, { Source, Layer, Popup } from 'react-map-gl/mapbox';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import {
+  type CountryCounts,
+  loadCountriesGeoJson,
+  processGeoJsonWithCounts,
+  getColorIntensity,
+} from '@/lib/mapUtils';
 
 export default function Honey() {
-  const [logs, setLogs] = useState<any[]>([]);
-  const [connectionStatus, setConnectionStatus] = useState<"connecting" | "connected" | "disconnected" | "error">("connecting");
-  const [totalReceived, setTotalReceived] = useState(0);
-  const socketRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const reconnectAttemptsRef = useRef(0);
-  const maxReconnectAttempts = 5;
-  const reconnectDelay = 3000; // 3 seconds
-  const maxLogs = 1000; // Maximum number of logs to keep in memory
 
-  const connectWebSocket = () => {
+  // Map state
+  const [countryCounts, setCountryCounts] = useState<CountryCounts>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [hoveredCountry, setHoveredCountry] = useState<{ country: string; count: number; lng: number; lat: number } | null>(null);
+  const [countriesGeoJson, setCountriesGeoJson] = useState<any>(null);
+  
+  const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw';
+
+  // Fetch country counts
+  const fetchCountryCounts = async () => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      // Close existing connection if any
-      if (socketRef.current) {
-        socketRef.current.close();
+      const apiUrl = import.meta.env.DEV 
+        ? `/api/v1/ext/logs/country-counts`
+        : `${import.meta.env.VITE_GATEWAY_URL || 'http://localhost:3002'}/api/v1/ext/logs/country-counts`;
+      
+      const response = await fetch(apiUrl, {
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
       }
 
-      setConnectionStatus("connecting");
-      const socket = new WebSocket("ws://localhost:8001/ws/logs/");
-      socketRef.current = socket;
-
-      socket.onopen = async () => {
-        console.log("Connected to Log WebSocket");
-        setConnectionStatus("connected");
-        reconnectAttemptsRef.current = 0; // Reset on successful connection
-        
-        // Fetch recent logs that were sent before we connected
-        try {
-          const response = await fetch("http://localhost:8001/recent-logs?limit=100");
-          if (response.ok) {
-            const data = await response.json();
-            if (data.logs && data.logs.length > 0) {
-              // Add recent logs in reverse order (oldest first) so newest appear at top
-              setLogs((prev) => {
-                const combined = [...data.logs.reverse(), ...prev];
-                return combined.slice(0, maxLogs);
-              });
-              setTotalReceived((prev) => prev + data.logs.length);
-            }
-          }
-        } catch (err) {
-          console.error("Error fetching recent logs:", err);
-        }
-      };
-
-      socket.onmessage = (event) => {
-        try {
-          const message = JSON.parse(event.data);
-          if (message.event === "newLog") {
-            // Only add log if data is not null/undefined
-            if (message.data) {
-              setTotalReceived((prev) => prev + 1);
-              
-              // Use functional update to ensure we always get the latest state
-              setLogs((prev) => {
-                // Prepend new log to the beginning
-                const newLogs = [message.data, ...prev];
-                // Keep only the most recent maxLogs
-                return newLogs.slice(0, maxLogs);
-              });
-            } else {
-              console.warn("Received log message with null/undefined data");
-            }
-          } else {
-            // Log unexpected message types for debugging
-            console.warn("Unexpected WebSocket message event:", message.event, message);
-          }
-        } catch (err) {
-          console.error("Error parsing WebSocket message:", err, event.data);
-        }
-      };
-
-      socket.onerror = (err) => {
-        console.error("WebSocket error:", err);
-        setConnectionStatus("error");
-      };
-
-      socket.onclose = (event) => {
-        console.log("Disconnected from Log WebSocket", event.code, event.reason);
-        setConnectionStatus("disconnected");
-
-        // Attempt to reconnect if not a normal closure and we haven't exceeded max attempts
-        if (event.code !== 1000 && reconnectAttemptsRef.current < maxReconnectAttempts) {
-          reconnectAttemptsRef.current++;
-          console.log(`Attempting to reconnect (${reconnectAttemptsRef.current}/${maxReconnectAttempts})...`);
-          
-          reconnectTimeoutRef.current = setTimeout(() => {
-            connectWebSocket();
-          }, reconnectDelay);
-        } else if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
-          console.error("Max reconnection attempts reached. Please check if the WebSocket server is running.");
-          setConnectionStatus("error");
-        }
-      };
+      const data = await response.json();
+      setCountryCounts(data);
+      setLastUpdated(new Date());
     } catch (err) {
-      console.error("Error creating WebSocket connection:", err);
-      setConnectionStatus("error");
+      setError(err instanceof Error ? err.message : 'Failed to fetch country counts');
+      console.error('Error fetching country counts:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Load GeoJSON
   useEffect(() => {
-    connectWebSocket();
+    const loadGeoJson = async () => {
+      try {
+        const data = await loadCountriesGeoJson();
+        setCountriesGeoJson(data);
+      } catch (err) {
+        console.error('Error loading countries GeoJSON:', err);
+      }
+    };
+    
+    loadGeoJson();
+  }, []);
 
+  // Fetch country counts
+  useEffect(() => {
+    fetchCountryCounts();
+    const interval = setInterval(fetchCountryCounts, 5000);
     return () => {
-      // Cleanup
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
-      if (socketRef.current) {
-        socketRef.current.close(1000, "Component unmounting");
-      }
+      clearInterval(interval);
     };
   }, []);
 
-  const getStatusColor = () => {
-    switch (connectionStatus) {
-      case "connected":
-        return "text-green-500";
-      case "connecting":
-        return "text-yellow-500";
-      case "error":
-        return "text-red-500";
-      default:
-        return "text-gray-500";
+  const maxCount = Math.max(...Object.values(countryCounts), 1);
+  
+  const styledGeoJson = (() => {
+    if (!countriesGeoJson || !countryCounts) return null;
+    const { geoJson } = processGeoJsonWithCounts(countriesGeoJson, countryCounts);
+    return geoJson;
+  })();
+
+  const onHover = (event: any) => {
+    const feature = event.features?.[0];
+    if (feature && event.lngLat) {
+      const country = feature.properties?.ISO_A2 || feature.properties?.ISO_A3 || feature.properties?.NAME || 'Unknown';
+      const count = feature.properties?.count || 0;
+      setHoveredCountry({
+        country,
+        count,
+        lng: event.lngLat.lng,
+        lat: event.lngLat.lat,
+      });
     }
   };
 
-  const getStatusText = () => {
-    switch (connectionStatus) {
-      case "connected":
-        return "Connected";
-      case "connecting":
-        return "Connecting...";
-      case "error":
-        return reconnectAttemptsRef.current >= maxReconnectAttempts
-          ? "Connection failed - Max retries reached"
-          : "Connection error";
-      default:
-        return "Disconnected";
-    }
-  };
+  const onLeave = () => { setHoveredCountry(null) };
+
+  const topCountries = Object.entries(countryCounts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 10);
+
+  const totalAttacks = Object.values(countryCounts).reduce((sum, count) => sum + count, 0);
 
   return (
-    <div className="p-4">
-      <div className="mb-4 flex items-center gap-2">
-        <div className={`w-3 h-3 rounded-full ${
-          connectionStatus === "connected" ? "bg-green-500" :
-          connectionStatus === "connecting" ? "bg-yellow-500" :
-          connectionStatus === "error" ? "bg-red-500" : "bg-gray-500"
-        }`} />
-        <span className={getStatusColor()}>
-          WebSocket: {getStatusText()}
-        </span>
-        {connectionStatus === "error" && reconnectAttemptsRef.current < maxReconnectAttempts && (
-          <span className="text-sm text-gray-500">
-            (Retrying {reconnectAttemptsRef.current}/{maxReconnectAttempts}...)
-          </span>
+    <div className="container mx-auto px-4 py-8 max-w-7xl space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl sm:text-4xl font-bold text-foreground mb-2">Honeypot Intelligence</h1>
+        <p className="text-sm sm:text-lg text-muted-foreground">
+          Real-time attack monitoring and geographic distribution
+        </p>
+      </div>
+
+      {/* Map Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground">Attack Heatmap</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Geographic distribution of attack sources
+              {lastUpdated && (
+                <span className="ml-2">
+                  • Last updated: {lastUpdated.toLocaleTimeString()}
+                </span>
+              )}
+            </p>
+          </div>
+          <Button 
+            onClick={fetchCountryCounts} 
+            disabled={loading} 
+            variant="outline" 
+            size="sm" 
+            className="gap-2"
+          >
+            <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")}/>
+            Refresh
+          </Button>
+        </div>
+
+        {error && (
+          <div className="flex items-center gap-2 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
+            <AlertCircle className="h-5 w-5" />
+            <div>
+              <p className="font-medium">Error loading heatmap data</p>
+              <p className="text-sm">{error}</p>
+            </div>
+          </div>
+        )}
+
+        {loading && Object.keys(countryCounts).length === 0 ? (
+          <div className="flex items-center justify-center py-12">
+            <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+            <span className="ml-3 text-muted-foreground">Loading heatmap data...</span>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Stats Summary */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-4 border rounded-lg bg-card">
+                <p className="text-sm text-muted-foreground">Total Attacks</p>
+                <p className="text-2xl font-bold text-foreground">{totalAttacks}</p>
+              </div>
+              <div className="p-4 border rounded-lg bg-card">
+                <p className="text-sm text-muted-foreground">Countries</p>
+                <p className="text-2xl font-bold text-foreground">{Object.keys(countryCounts).length}</p>
+              </div>
+              <div className="p-4 border rounded-lg bg-card">
+                <p className="text-sm text-muted-foreground">Top Country</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {topCountries[0] ? `${topCountries[0][0]}: ${topCountries[0][1]}` : 'N/A'}
+                </p>
+              </div>
+            </div>
+
+            {/* Interactive Map */}
+            <div className="border rounded-lg bg-card p-6">
+              <div className="aspect-video rounded-lg overflow-hidden relative">
+                {!countriesGeoJson ? (
+                  <div className="w-full h-full flex items-center justify-center bg-muted">
+                    <div className="text-center text-muted-foreground">
+                      <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2" />
+                      <p className="text-sm">Loading map data...</p>
+                    </div>
+                  </div>
+                ) : Object.keys(countryCounts).length === 0 ? (
+                  <div className="w-full h-full flex items-center justify-center bg-muted">
+                    <div className="text-center text-muted-foreground">
+                      <p className="text-lg font-medium mb-2">No attack data yet</p>
+                      <p className="text-sm">Attack data will appear here as logs are processed</p>
+                    </div>
+                  </div>
+                ) : (
+                  <MapGL
+                    mapboxAccessToken={MAPBOX_TOKEN}
+                    initialViewState={{
+                      longitude: 0,
+                      latitude: 20,
+                      zoom: 1.5,
+                    }}
+                    style={{ width: '100%', height: '100%' }}
+                    mapStyle="mapbox://styles/mapbox/dark-v11"
+                    interactiveLayerIds={['countries-layer']}
+                    onMouseMove={onHover}
+                    onMouseLeave={onLeave}
+                    cursor="pointer"
+                  >
+                    {styledGeoJson && (
+                      <Source id="countries" type="geojson" data={styledGeoJson}>
+                        <Layer
+                          id="countries-layer"
+                          type="fill"
+                          paint={{
+                            'fill-color': [
+                              'case',
+                              ['>', ['get', 'count'], 0],
+                              [
+                                'interpolate',
+                                ['linear'],
+                                ['get', 'count'],
+                                0, '#e5e7eb',
+                                maxCount * 0.25, 'rgb(255, 200, 200)',
+                                maxCount * 0.5, 'rgb(255, 150, 150)',
+                                maxCount * 0.75, 'rgb(255, 100, 100)',
+                                maxCount, 'rgb(200, 50, 50)',
+                              ],
+                              '#e5e7eb',
+                            ],
+                            'fill-opacity': 0.7,
+                          }}
+                        />
+                        <Layer
+                          id="countries-outline"
+                          type="line"
+                          paint={{
+                            'line-color': '#ffffff',
+                            'line-width': 0.5,
+                            'line-opacity': 0.3,
+                          }}
+                        />
+                      </Source>
+                    )}
+                    {hoveredCountry && hoveredCountry.count > 0 && (
+                      <Popup
+                        longitude={hoveredCountry.lng}
+                        latitude={hoveredCountry.lat}
+                        anchor="bottom"
+                        closeButton={false}
+                        closeOnClick={false}
+                        offset={[0, -10]}
+                      >
+                        <div className="px-2 py-1">
+                          <p className="font-semibold text-sm">{hoveredCountry.country}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {hoveredCountry.count} {hoveredCountry.count === 1 ? 'attack' : 'attacks'}
+                          </p>
+                        </div>
+                      </Popup>
+                    )}
+                  </MapGL>
+                )}
+              </div>
+              {maxCount > 0 && (
+                <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
+                  <span>Intensity:</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-16 h-3 rounded" style={{ background: 'linear-gradient(to right, #e5e7eb, rgb(255, 200, 200), rgb(255, 150, 150), rgb(255, 100, 100), rgb(200, 50, 50))' }} />
+                    <span>Low</span>
+                    <span>→</span>
+                    <span>High</span>
+                  </div>
+                  <span className="ml-auto">Max: {maxCount} attacks</span>
+                </div>
+              )}
+            </div>
+
+            {/* Top Countries Table */}
+            {topCountries.length > 0 && (
+              <div className="border rounded-lg bg-card">
+                <div className="p-4 border-b">
+                  <h3 className="font-semibold text-foreground">Top 10 Countries by Attack Count</h3>
+                </div>
+                <div className="overflow-x-auto rounded-b-xl">
+                  <table className="w-full">
+                    <thead className="bg-muted">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Rank</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Country Code</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Attacks</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Intensity</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {topCountries.map(([country, count], index) => (
+                        <tr key={country} className="hover:bg-muted/50 bg-background border border-muted transition-colors">
+                          <td className="px-6 py-4 text-sm text-muted-foreground">{index + 1}</td>
+                          <td className="px-6 py-4 text-sm font-mono font-semibold text-foreground">{country}</td>
+                          <td className="px-6 py-4 text-sm text-foreground">{count}</td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              <div className="h-4 w-24 rounded" style={{ backgroundColor: getColorIntensity(count, maxCount) }}/>
+                              <span className="text-xs text-muted-foreground">{Math.round((count / maxCount) * 100)}%</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* All Countries */}
+            {Object.keys(countryCounts).length > 0 && Object.keys(countryCounts).length <= 50 && (
+              <div className="border rounded-lg bg-card p-4">
+                <h3 className="font-semibold text-foreground mb-3">All Countries</h3>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(countryCounts)
+                    .sort(([, a], [, b]) => b - a)
+                    .map(([country, count]) => (
+                      <div
+                        key={country}
+                        className="px-3 py-1 rounded text-xs border"
+                        style={{ 
+                          backgroundColor: getColorIntensity(count, maxCount) + '20',
+                          borderColor: getColorIntensity(count, maxCount),
+                        }}
+                      >
+                        <span className="font-mono font-semibold">{country}</span>
+                        <span className="ml-2 text-muted-foreground">{count}</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </div>
-      <div className="mb-2 text-sm text-gray-600">
-        Total received: {totalReceived} | Displayed: {logs.length}
-        {logs.length >= maxLogs && (
-          <span className="text-yellow-600 ml-2">(Showing most recent {maxLogs} logs)</span>
-        )}
-      </div>
-      {logs.length === 0 && connectionStatus === "connected" && (
-        <p className="text-gray-500 text-sm">Waiting for logs...</p>
-      )}
-      {logs.map((log, idx) => (
-        <pre key={idx} className="mb-2 p-2 bg-gray-100 rounded text-xs overflow-auto">
-          {JSON.stringify(log, null, 2)}
-        </pre>
-      ))}
     </div>
   );
 }
