@@ -15,11 +15,6 @@ async function streamLogs() {
   console.log(`Loaded ${logs.length} logs. Starting stream...`);
 
   for (let i = 0; i < logs.length; i++) {
-
-    if (i > 50) {
-      break;
-    }
-
     const log = logs[i];
 
     // Calculate delay based on timestamp difference with previous log

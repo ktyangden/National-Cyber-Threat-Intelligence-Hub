@@ -188,7 +188,7 @@ export default function Phishes() {
                   </tr>
                 ) : (
                   filteredDomains.map((item, index) => (
-                    <tr key={`${item.domain}-${index}`} className="block sm:table-row border-b sm:border-0 sm:hover:bg-muted/50 transition-colors">
+                    <tr key={`${item.domain}-${index}`} className="block sm:table-row border-b sm:border-2 sm:hover:bg-muted/50 transition-colors border-muted bg-black">
                       <td data-label="#" className="block sm:table-cell px-4 py-2 sm:px-6 sm:py-4 text-sm whitespace-nowrap before:content-[attr(data-label)] before:font-medium before:text-muted-foreground before:inline-block before:pr-3 sm:before:hidden text-muted-foreground">
                         {((page - 1) * limit) + index + 1}
                       </td>

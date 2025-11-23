@@ -73,4 +73,19 @@ const getPhishingDomains = async (req, res) => {
     }
 };
 
-module.exports = { ml, log, getPhishingDomains };
+const getCountryCounts = async (req, res) => {
+    try {
+        // Proxy request to log-service (no auth needed for GET endpoint)
+        const response = await axios.get("http://localhost:8001/country-counts", {
+            headers: {
+                'Accept': 'application/json',
+            },
+        });
+        res.status(200).json(response.data);
+    } catch (error) {
+        console.log("Server Error: ", error);
+        res.status(500).json({ error: "Failed to fetch country counts" });
+    }
+};
+
+module.exports = { ml, log, getPhishingDomains, getCountryCounts };
