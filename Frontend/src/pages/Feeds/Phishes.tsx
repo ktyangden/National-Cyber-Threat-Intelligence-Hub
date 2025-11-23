@@ -1,10 +1,10 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
-import { AlertCircle, RefreshCw, Shield, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { AlertCircle, RefreshCw, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
-interface PhishingDomain { domain: string, firstSeen: string, status: string, source: string }
+interface PhishingDomain { domain: string, tld: string, status: string }
 
 interface PaginationInfo { total: number, page: number, limit: number, totalPages: number, hasNext: boolean, hasPrev: boolean }
 
@@ -41,13 +41,28 @@ export default function Phishes() {
       const data = await response.json();
       
       // Handle response format: { domains: string[], pagination: {...} }
+      // Data is an array of domain strings (e.g., "example.com")
       const domainList = Array.isArray(data.domains) ? data.domains : [];
+      
+      // Extract TLD from domain (e.g., "example.com" -> "com", "sub.example.co.uk" -> "co.uk")
+      const extractTLD = (domain: string): string => {
+        const parts = domain.split('.');
+        if (parts.length >= 2) {
+          // Handle common two-part TLDs like .co.uk, .com.au, etc.
+          const lastTwo = parts.slice(-2).join('.');
+          const commonTwoPartTLDs = ['co.uk', 'com.au', 'co.nz', 'co.za', 'com.br', 'com.mx', 'net.au', 'org.uk', 'com.cn'];
+          if (commonTwoPartTLDs.some(tld => lastTwo.includes(tld))) {
+            return lastTwo;
+          }
+          return parts[parts.length - 1];
+        }
+        return parts[parts.length - 1] || 'unknown';
+      };
       
       const formattedDomains: PhishingDomain[] = domainList.map((domain: string) => ({
         domain: domain.trim(),
-        firstSeen: 'N/A',
+        tld: extractTLD(domain.trim()),
         status: 'Active',
-        source: 'Phishing.Database',
       }));
 
       setDomains(formattedDomains);
@@ -89,10 +104,9 @@ export default function Phishes() {
     <div className="w-full space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Shield className="h-6 w-6 text-red-500 dark:text-red-400" />
           <div>
-            <h2 className="text-2xl font-bold text-foreground">Phishing Domains</h2>
-            <p className="text-sm text-muted-foreground">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground">Phishing Domains</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Active phishing domains from Phishing.Database
               {lastUpdated && (
                 <span className="ml-2">
@@ -146,9 +160,9 @@ export default function Phishes() {
           <span className="ml-3 text-muted-foreground">Loading phishing domains...</span>
         </div>
       ) : (
-        <div className="border rounded-lg bg-card h-150 flex flex-col">
-          <div className="overflow-x-auto sm:overflow-visible flex-1 overflow-y-scroll">
-            <table className="w-full">
+        <div className="border rounded-lg bg-card max-h-[600px] sm:max-h-[700px] flex flex-col">
+          <div className="overflow-x-auto overflow-y-auto flex-1 rounded-lg">
+            <table className="w-full rounded-lg">
               <thead className="hidden sm:table-header-group bg-muted sticky top-0 border-b z-10">
                 <tr className="block sm:table-row border-b sm:border-0 sm:hover:bg-muted/50 hover:bg-muted/30 transition-colors">
                   <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -158,44 +172,38 @@ export default function Phishes() {
                     Domain
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    First Seen
+                    TLD
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Source
-                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-border rounded-lg">
                 {filteredDomains.length === 0 ? (
-                  <tr className="block sm:table-row border-b sm:border-0 sm:hover:bg-muted/50 hover:bg-muted/30 transition-colors">
-                    <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
+                  <tr className="block sm:table-row border-b rounded-lg sm:border-0 sm:hover:bg-muted/50 hover:bg-muted/30 transition-colors">
+                    <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground">
                       {searchQuery ? 'No domains match your search' : 'No phishing domains found'}
                     </td>
                   </tr>
                 ) : (
                   filteredDomains.map((item, index) => (
                     <tr key={`${item.domain}-${index}`} className="block sm:table-row border-b sm:border-0 sm:hover:bg-muted/50 transition-colors">
-                      <td data-label="#" className="block sm:table-cell px-6 py-4 text-sm whitespace-nowrap before:content-[attr(data-label)] before:font-medium before:text-muted-foreground before:inline-block before:pr-3 sm:before:hidden">
-                        {index + 1}
+                      <td data-label="#" className="block sm:table-cell px-4 py-2 sm:px-6 sm:py-4 text-sm whitespace-nowrap before:content-[attr(data-label)] before:font-medium before:text-muted-foreground before:inline-block before:pr-3 sm:before:hidden text-muted-foreground">
+                        {((page - 1) * limit) + index + 1}
                       </td>
-                      <td data-label="Domain" className="block sm:table-cell px-6 py-4 text-sm whitespace-nowrap before:content-[attr(data-label)] before:font-medium before:text-muted-foreground before:inline-block before:pr-3 sm:before:hidden">
+                      <td data-label="Domain" className="block sm:table-cell px-4 sm:px-6 pt-2 sm:py-4 text-sm whitespace-nowrap before:content-[attr(data-label)] before:font-medium before:text-muted-foreground before:inline-block before:pr-3 sm:before:hidden">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-mono text-foreground">{item.domain}</span>
                         </div>
                       </td>
-                      <td data-label="First Seen" className="block sm:table-cell px-6 py-4 text-sm whitespace-nowrap before:content-[attr(data-label)] before:font-medium before:text-muted-foreground before:inline-block before:pr-3 sm:before:hidden">
-                        {item.firstSeen}
+                      <td data-label="TLD" className="block sm:table-cell px-4 sm:px-6 pt-2 sm:py-4 text-sm whitespace-nowrap before:content-[attr(data-label)] before:font-medium before:text-muted-foreground before:inline-block before:pr-3 sm:before:hidden text-muted-foreground">
+                        <span className="text-xs font-medium uppercase">{item.tld}</span>
                       </td>
-                      <td data-label="Status" className="block sm:table-cell px-6 py-4 text-sm whitespace-nowrap before:content-[attr(data-label)] before:font-medium before:text-muted-foreground before:inline-block before:pr-3 sm:before:hidden">
+                      <td data-label="Status" className="block sm:table-cell px-4 sm:px-6 py-2 pb-3 sm:py-4 text-sm whitespace-nowrap before:content-[attr(data-label)] before:font-medium before:text-muted-foreground before:inline-block before:pr-3 sm:before:hidden">
                         <span className="px-2 py-0.5 text-xs bg-red-500/10 text-red-600 dark:text-red-400 rounded">
                           {item.status}
                         </span>
-                      </td>
-                      <td data-label="Source" className="block sm:table-cell px-6 py-4 text-sm whitespace-nowrap before:content-[attr(data-label)] before:font-medium before:text-muted-foreground before:inline-block before:pr-3 sm:before:hidden">
-                        {item.source}
                       </td>
                     </tr>
                   ))
@@ -203,7 +211,7 @@ export default function Phishes() {
               </tbody>
             </table>
           </div>
-          <div className="sticky bottom-0 px-6 py-3 bg-muted border-t flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="sticky rounded-b-lg bottom-0 w-full px-6 py-3 bg-muted border-t flex flex-col sm:flex-row items-center sm:items-center justify-between gap-4">
             <div className="text-sm text-muted-foreground">
               {searchQuery ? (
                 <>Showing {filteredDomains.length} of {domains.length} {domains.length === 1 ? 'domain' : 'domains'} matching "{searchQuery}"</>
