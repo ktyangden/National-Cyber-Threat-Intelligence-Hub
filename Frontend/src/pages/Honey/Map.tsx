@@ -105,7 +105,7 @@ export default function Heatmap({ onDataUpdate }: HeatmapProps) {
     Object.entries(countryCounts).sort((a, b) => b[1] - a[1])[0] || null;
 
   return (
-    <div className="space-y-6">
+    <section id="#heatmap" className="space-y-6">
 
       {/* Map Header */}
       <div className="flex items-center justify-between">
@@ -238,6 +238,6 @@ export default function Heatmap({ onDataUpdate }: HeatmapProps) {
           <span className="ml-auto">Max: {maxCount}</span>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
