@@ -65,7 +65,8 @@ await consumer.run({
 
     // Send log to ML-service for Classification
     try {
-      const res = await axios.post(`http://localhost:${GatewayPORT}/micro/ml`, payload);      
+      const res = await axios.post(`http://localhost:${GatewayPORT}/micro/ml`, payload);
+
       const classifiedLog = res.data?.classifiedLog;
 
       // Validate classifiedLog exists before sending
@@ -76,6 +77,10 @@ await consumer.run({
 
       // Send classified logs to Log-service
       try {
+        console.log("-----------------------------------------------------------------------------------------------------------------")
+        console.log("Sending request to gateway");
+        console.log("-----------------------------------------------------------------------------------------------------------------")
+
         await axios.post(`http://localhost:${GatewayPORT}/micro/log`, { classifiedLog });
       } catch (err) {
         console.error("Error calling Gateway|Log:", err.message);
@@ -88,15 +93,15 @@ await consumer.run({
 
 
 // If attack is detected then send to Alert-service
-    // if (classifiedLog.isAttack == True) {
+// if (classifiedLog.isAttack == True) {
 
-    //   const alertData = {
+//   const alertData = {
 
-    //   }
+//   }
 
-    //   try {
-    //     await axios.post("http://localhost:8002/send-alert", alertData);
-    //   } catch (err) {
-    //     console.error("Error calling ML service:", err);
-    //   }
-    // }
+//   try {
+//     await axios.post("http://localhost:8002/send-alert", alertData);
+//   } catch (err) {
+//     console.error("Error calling ML service:", err);
+//   }
+// }

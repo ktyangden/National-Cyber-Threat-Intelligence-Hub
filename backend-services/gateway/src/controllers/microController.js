@@ -21,6 +21,12 @@ const log = async (req, res) => {
     }
     
     try {
+        console.log("-----------------------------------------------------------------------------------------------------------------")
+        console.log("Forwording request to LOG service");
+        console.log("Token: ",req.g2sToken);
+        
+        console.log("-----------------------------------------------------------------------------------------------------------------")
+
         // Log service expects { classifiedLog: ... } format
         await axios.post("http://localhost:8001/send-log", { classifiedLog }, {headers: { Authorization: `Bearer ${req.g2sToken}`}});
         res.status(201).json({ 'message': "Success" });

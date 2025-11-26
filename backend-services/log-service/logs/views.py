@@ -19,13 +19,33 @@ default_stats = {
 }
 
 # Load stats.json if exists, else create
+# def load_stats():
+#     if os.path.exists(STATS_FILE):
+#         with open(STATS_FILE, "r") as f:
+#             return json.load(f)
+#     else:
+#         with open(STATS_FILE, "w") as f:
+#             json.dump(default_stats, f)
+#         return default_stats
 def load_stats():
-    if os.path.exists(STATS_FILE):
+    # If file does not exist → create default
+    if not os.path.exists(STATS_FILE):
+        save_stats(default_stats)
+        return default_stats
+
+    try:
         with open(STATS_FILE, "r") as f:
-            return json.load(f)
-    else:
-        with open(STATS_FILE, "w") as f:
-            json.dump(default_stats, f)
+            content = f.read().strip()
+            if not content:
+                # file exists but empty → reset
+                save_stats(default_stats)
+                return default_stats
+
+            return json.loads(content)
+
+    except json.JSONDecodeError:
+        # File corrupted → reset it
+        save_stats(default_stats)
         return default_stats
 
 def save_stats(data):
@@ -45,7 +65,8 @@ _max_recent_logs = 1000
 @api_view(['POST'])
 def send_log(request):
     log_data = request.data.get("classifiedLog")
-
+    print("----------------------------------------------------------------------------------------------------------- ")
+    print("log_data: ", log_data)
     if not log_data:
         return Response({"status": "error", "message": "No log data provided"}, status=400)
 
