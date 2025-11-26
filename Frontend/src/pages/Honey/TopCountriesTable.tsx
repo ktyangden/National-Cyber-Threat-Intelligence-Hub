@@ -1,4 +1,5 @@
 import { getColorIntensity } from "@/lib/mapUtils";
+import { getCountryName } from "@/lib/countryNames";
 
 interface Props { countryCounts: Record<string, number>, maxCount: number }
 
@@ -28,14 +29,21 @@ export default function TopCountriesTable({ countryCounts, maxCount }: Props) {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {topCountries.map(([country, count], index) => (
-              <tr key={country} className="hover:bg-muted/50 bg-background border border-muted transition-colors">
+            {topCountries.map(([countryCode, count], index) => (
+              <tr key={countryCode} className="hover:bg-muted/50 bg-background border border-muted transition-colors">
                 <td className="px-6 py-4 text-sm text-muted-foreground">
                   {index + 1}
                 </td>
 
-                <td className="px-6 py-4 text-sm font-mono font-semibold text-foreground">
-                  {country}
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-foreground">
+                      {getCountryName(countryCode)}
+                    </span>
+                    <span className="text-xs font-mono text-muted-foreground">
+                      ({countryCode})
+                    </span>
+                  </div>
                 </td>
 
                 <td className="px-6 py-4 text-sm text-foreground">{count}</td>

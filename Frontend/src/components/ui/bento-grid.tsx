@@ -10,7 +10,7 @@ interface BentoGridProps extends ComponentPropsWithoutRef<"div"> {
 interface BentoCardProps extends ComponentPropsWithoutRef<"div"> {
   name: string
   className: string
-  background: ReactNode
+  background?: ReactNode
   Icon: React.ElementType
   description: string
   cta: string
@@ -51,7 +51,7 @@ const BentoCard = ({
     )}
     {...props}
   >
-    <div className="flex items-center justify-center">{background}</div>
+    <div className="flex items-center justify-center">{background ?? <div className="h-full w-full"/>}</div>
     <div className="p-4">
       <div className="pointer-events-none z-10 flex transform-gpu flex-col items-center text-center gap-1 transition-all duration-300 lg:group-hover:-translate-y-10">
         <Icon className="h-12 w-12 transform-gpu text-neutral-700 transition-all duration-300 ease-in-out group-hover:scale-75" />
