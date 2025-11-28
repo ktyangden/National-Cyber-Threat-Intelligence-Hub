@@ -20,4 +20,17 @@ router.get("/logs/recent-logs", async (req, res) => {
   }
 });
 
+router.get("/logs/persistent-stats", async (req, res) => {
+  try {
+    const response = await axios.get(`http://localhost:8001/persistent-stats`, {
+      headers: { Accept: "application/json" }
+    });
+
+    res.status(200).json(response.data);
+  } catch (err) {
+    console.error("Error fetching persistent stats:", err.message);
+    res.status(500).json({ error: "Failed to fetch persistent stats" });
+  }
+});
+
 module.exports = router;

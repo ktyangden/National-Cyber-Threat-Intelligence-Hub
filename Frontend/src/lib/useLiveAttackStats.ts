@@ -5,18 +5,19 @@ export interface AttackStats {
     uniqueIPs: number;
     totalCountries: number;
     attackRate: number;
+    logs: LogEntry[];
 }
 
-interface LogEntry {
+export interface LogEntry {
     src_ip?: string;
     ip?: string;
+    source_ip?: string;
     country?: string;
     timestamp?: string;
 }
 
 export function useLiveAttackStats() {
     const [logs, setLogs] = useState<LogEntry[]>([]);
-    const [isConnected, setIsConnected] = useState(false);
     const [isLoadingHistory, setIsLoadingHistory] = useState(true);
 
     // Load historical logs on mount
@@ -35,6 +36,9 @@ export function useLiveAttackStats() {
                     const data = await response.json();
                     const historicalLogs = data.logs || [];
                     console.log(`Loaded ${historicalLogs.length} historical logs`);
+                    if (historicalLogs.length > 0) {
+                        console.log("Sample log entry:", historicalLogs[0]);
+                    }
                     setLogs(historicalLogs);
                 }
             } catch (err) {
@@ -65,7 +69,6 @@ export function useLiveAttackStats() {
                 ws.onopen = () => {
                     if (isMounted) {
                         console.log("WebSocket connected");
-                        setIsConnected(true);
                     }
                 };
 
@@ -77,7 +80,8 @@ export function useLiveAttackStats() {
                         const data = message.data || message;
 
                         if (!data || typeof data !== "object") return;
-                        if (!data.src_ip && !data.ip) return;
+                        // Check for any IP field
+                        if (!data.src_ip && !data.ip && !data.source_ip) return;
 
                         setLogs((prev) => {
                             const updated = [...prev, data];
@@ -93,14 +97,10 @@ export function useLiveAttackStats() {
 
                 ws.onerror = (err) => {
                     console.error("WS error:", err);
-                    if (isMounted) {
-                        setIsConnected(false);
-                    }
                 };
 
                 ws.onclose = () => {
                     if (isMounted) {
-                        setIsConnected(false);
                         reconnectTimeout = setTimeout(connect, 3000);
                     }
                 };
@@ -129,7 +129,7 @@ export function useLiveAttackStats() {
     const totalAttacks = logs.length;
 
     const uniqueIPs = new Set(
-        logs.map((l) => l.src_ip || l.ip).filter(Boolean)
+        logs.map((l) => l.src_ip || l.ip || l.source_ip).filter(Boolean)
     ).size;
 
     const countries = logs
@@ -171,6 +171,7 @@ export function useLiveAttackStats() {
         uniqueIPs,
         totalCountries: uniqueCountries,
         attackRate: Number(attackRate.toFixed(2)),
+        logs,
     };
 
     return stats;
