@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Sheet, SheetContent, SheetFooter } from "@/components/sheet";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { MenuToggle } from "@/components/menu-toggle";
@@ -43,6 +43,12 @@ export function SimpleHeader() {
     }
   ];
 
+  // useEffect(() => {
+  //   if (user) {
+  //     console.log(user);
+  //   }
+  // },);
+
   return (
     <header className="bg-background/95 supports-[backdrop-filter]:bg-background/80 sticky top-0 z-50 w-full border-b backdrop-blur-lg">
       <nav className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4">
@@ -75,11 +81,9 @@ export function SimpleHeader() {
               <Button variant="outline" className="hover:bg-red-400 dark:hover:bg-red-900 hover:text-white" onClick={logout}>Logout</Button>
               <div className="flex items-center gap-2 pl-2 border-l group relative">
                 <img
-                  src={user.avatar 
-                        ? `${import.meta.env.VITE_AUTH_SERVICE_URL}/api/auth/avatar-proxy/?url=${encodeURIComponent(user.avatar)}`
-                        : getAvatarUrl(user.username)
-                      }
+                  src={user.avatar ? (user.avatar) : getAvatarUrl(user.username)}
                   alt={user.username}
+                  referrerPolicy="no-referrer"
                   className="border-2 border-neutral-300 dark:border-neutral-800 w-9 h-9 rounded-md cursor-pointer object-cover"
                 />
                 <span className="absolute top-10 bg-white dark:bg-black text-black dark:text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">

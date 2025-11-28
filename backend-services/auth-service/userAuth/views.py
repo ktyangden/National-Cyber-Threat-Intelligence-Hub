@@ -186,32 +186,3 @@ class GetDataView(APIView):
         except Exception as e:
             print("Error getting data:", e)
             return Response({"error": "Server error"}, status=500)
-
-
-# Avatar Proxy View
-class AvatarProxyView(APIView):
-    permission_classes = [AllowAny]
-
-    def get(self, request):
-        avatar_url = request.query_params.get("url")
-        
-        if not avatar_url:
-            return HttpResponse("Missing avatar URL", status=400)
-
-        if not avatar_url.startswith("https://lh3.googleusercontent.com"):
-            return HttpResponse("Invalid avatar URL", status=400)
-        
-        try:
-            response = requests.get(avatar_url, timeout=5)
-            
-            if response.status_code == 200:
-                return HttpResponse(
-                    response.content,
-                    content_type=response.headers.get('Content-Type', 'image/jpeg')
-                )
-            else:
-                return HttpResponse("Failed to fetch avatar", status=response.status_code)
-                
-        except requests.RequestException as e:
-            print(f"Avatar proxy error: {str(e)}")
-            return HttpResponse(f"Error fetching avatar: {str(e)}", status=500)

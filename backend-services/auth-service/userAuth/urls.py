@@ -7,5 +7,4 @@ urlpatterns = [
     path("google", GoogleView.as_view(), name="google"),
     path("refresh", RefreshView.as_view(), name="refresh"),
     path("getData", GetDataView.as_view(), name="getData"),
-    path("avatar-proxy/", AvatarProxyView.as_view(), name="avatar_proxy"),
 ]

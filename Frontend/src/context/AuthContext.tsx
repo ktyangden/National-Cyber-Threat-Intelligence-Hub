@@ -40,11 +40,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (code: string) => {
     try {
       setLoading(true);
-      const backendUrl = import.meta.env.DEV 
-        ? 'http://localhost:8005'
-        : import.meta.env.VITE_AUTH_URL || 'http://localhost:8005';
-
-      const response = await axios.post(`${backendUrl}/api/auth/google`, { code });
+      const response = await axios.post(`http://localhost:3002/auth/google`, { code });
 
       const { access, refresh, user: userData } = response.data;
 

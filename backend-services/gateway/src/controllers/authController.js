@@ -42,12 +42,16 @@ const login = async (req, res) => {
 
 const google = async (req, res) => {
     try {
+        console.log("BODY: ",req.body);
+        
         const { code } = req.body;
 
         const loginRes = await axios.post("http://localhost:8005/api/auth/google", { code }, { withCredentials: true });
 
         const { refreshToken, accessToken, user } = loginRes.data;
 
+        console.log("USER: ", user);
+        
         // Set HttpOnly cookie for refreshToken
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
