@@ -124,15 +124,15 @@ pipeline {
                         kubectl --kubeconfig="${kubeconfigPath}" apply -f Pipeline/data-ingestion.yaml --validate=false
                     """
                     
-                    // Force rolling update to pull latest images
+                    // Force Minikube to re-pull images by deleting cached images and restarting
                     bat """
-                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/frontend -n ${K8S_NAMESPACE}
-                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/gateway -n ${K8S_NAMESPACE}
-                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/auth-service -n ${K8S_NAMESPACE}
-                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/log-service -n ${K8S_NAMESPACE}
-                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/ml-service -n ${K8S_NAMESPACE}
-                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/etl-service -n ${K8S_NAMESPACE}
-                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/data-ingestion -n ${K8S_NAMESPACE}
+                        echo Forcing image re-pull...
+                        kubectl --kubeconfig="${kubeconfigPath}" delete pods --all -n ${K8S_NAMESPACE}
+                    """
+                    
+                    // Wait for pods to be recreated with fresh images
+                    bat """
+                        timeout /t 5 /nobreak
                     """
                 }
                 echo 'Deployment commands executed!'
