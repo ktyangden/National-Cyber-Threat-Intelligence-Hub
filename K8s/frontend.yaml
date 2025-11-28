@@ -23,7 +23,7 @@ spec:
                 - ml-log
       containers:
       - name: frontend
-        image: harshwardhan19/frontend:latest
+        image: harshwardhan19/frontend:v3
         imagePullPolicy: Always
         ports:
         - containerPort: 80     
