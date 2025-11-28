@@ -19,7 +19,7 @@ pipeline {
             steps {
                 echo '📥 Checking out code from GitHub...'
                 checkout scm
-                sh 'git log -1 --pretty=format:"%h - %an, %ar : %s"'
+                bat 'git log -1 --pretty=format:"%%h - %%an, %%ar : %%s"'
             }
         }
         
@@ -31,58 +31,44 @@ pipeline {
                     parallel(
                         'Frontend': {
                             echo 'Building Frontend...'
-                            sh """
-                                docker build -t ${DOCKER_USERNAME}/frontend:${IMAGE_TAG} \
-                                             -t ${DOCKER_USERNAME}/frontend:latest \
-                                             ./Frontend
+                            bat """
+                                docker build -t ${DOCKER_USERNAME}/frontend:${IMAGE_TAG} -t ${DOCKER_USERNAME}/frontend:latest ./Frontend
                             """
                         },
                         'Gateway': {
                             echo 'Building Gateway...'
-                            sh """
-                                docker build -t ${DOCKER_USERNAME}/gateway:${IMAGE_TAG} \
-                                             -t ${DOCKER_USERNAME}/gateway:latest \
-                                             ./backend-services/gateway
+                            bat """
+                                docker build -t ${DOCKER_USERNAME}/gateway:${IMAGE_TAG} -t ${DOCKER_USERNAME}/gateway:latest ./backend-services/gateway
                             """
                         },
                         'Auth Service': {
                             echo 'Building Auth Service...'
-                            sh """
-                                docker build -t ${DOCKER_USERNAME}/auth-service:${IMAGE_TAG} \
-                                             -t ${DOCKER_USERNAME}/auth-service:latest \
-                                             ./backend-services/auth-service
+                            bat """
+                                docker build -t ${DOCKER_USERNAME}/auth-service:${IMAGE_TAG} -t ${DOCKER_USERNAME}/auth-service:latest ./backend-services/auth-service
                             """
                         },
                         'Log Service': {
                             echo 'Building Log Service...'
-                            sh """
-                                docker build -t ${DOCKER_USERNAME}/log-service:${IMAGE_TAG} \
-                                             -t ${DOCKER_USERNAME}/log-service:latest \
-                                             ./backend-services/log-service
+                            bat """
+                                docker build -t ${DOCKER_USERNAME}/log-service:${IMAGE_TAG} -t ${DOCKER_USERNAME}/log-service:latest ./backend-services/log-service
                             """
                         },
                         'ML Service': {
                             echo 'Building ML Service...'
-                            sh """
-                                docker build -t ${DOCKER_USERNAME}/ml-service:${IMAGE_TAG} \
-                                             -t ${DOCKER_USERNAME}/ml-service:latest \
-                                             ./backend-services/ml-service
+                            bat """
+                                docker build -t ${DOCKER_USERNAME}/ml-service:${IMAGE_TAG} -t ${DOCKER_USERNAME}/ml-service:latest ./backend-services/ml-service
                             """
                         },
                         'ETL Service': {
                             echo 'Building ETL Service...'
-                            sh """
-                                docker build -t ${DOCKER_USERNAME}/etl-service:${IMAGE_TAG} \
-                                             -t ${DOCKER_USERNAME}/etl-service:latest \
-                                             ./backend-services/etl/etl-service
+                            bat """
+                                docker build -t ${DOCKER_USERNAME}/etl-service:${IMAGE_TAG} -t ${DOCKER_USERNAME}/etl-service:latest ./backend-services/etl/etl-service
                             """
                         },
                         'Data Ingestion': {
                             echo 'Building Data Ingestion...'
-                            sh """
-                                docker build -t ${DOCKER_USERNAME}/data-ingestion:${IMAGE_TAG} \
-                                             -t ${DOCKER_USERNAME}/data-ingestion:latest \
-                                             ./backend-services/etl/data-ingestion
+                            bat """
+                                docker build -t ${DOCKER_USERNAME}/data-ingestion:${IMAGE_TAG} -t ${DOCKER_USERNAME}/data-ingestion:latest ./backend-services/etl/data-ingestion
                             """
                         }
                     )
@@ -98,25 +84,19 @@ pipeline {
                     // Login to Docker Hub using credentials from Jenkins
                     docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS_ID) {
                         // Push all images
-                        sh """
+                        bat """
                             docker push ${DOCKER_USERNAME}/frontend:${IMAGE_TAG}
                             docker push ${DOCKER_USERNAME}/frontend:latest
-                            
                             docker push ${DOCKER_USERNAME}/gateway:${IMAGE_TAG}
                             docker push ${DOCKER_USERNAME}/gateway:latest
-                            
                             docker push ${DOCKER_USERNAME}/auth-service:${IMAGE_TAG}
                             docker push ${DOCKER_USERNAME}/auth-service:latest
-                            
                             docker push ${DOCKER_USERNAME}/log-service:${IMAGE_TAG}
                             docker push ${DOCKER_USERNAME}/log-service:latest
-                            
                             docker push ${DOCKER_USERNAME}/ml-service:${IMAGE_TAG}
                             docker push ${DOCKER_USERNAME}/ml-service:latest
-                            
                             docker push ${DOCKER_USERNAME}/etl-service:${IMAGE_TAG}
                             docker push ${DOCKER_USERNAME}/etl-service:latest
-                            
                             docker push ${DOCKER_USERNAME}/data-ingestion:${IMAGE_TAG}
                             docker push ${DOCKER_USERNAME}/data-ingestion:latest
                         """
@@ -131,7 +111,7 @@ pipeline {
                 echo '🚀 Deploying to Kubernetes (Minikube)...'
                 script {
                     // Apply all Kubernetes manifests
-                    sh """
+                    bat """
                         kubectl apply -f K8s/frontend.yaml
                         kubectl apply -f K8s/gateway.yaml
                         kubectl apply -f K8s/auth-service.yaml
@@ -142,7 +122,7 @@ pipeline {
                     """
                     
                     // Force rolling update to pull latest images
-                    sh """
+                    bat """
                         kubectl rollout restart deployment/frontend -n ${K8S_NAMESPACE}
                         kubectl rollout restart deployment/gateway -n ${K8S_NAMESPACE}
                         kubectl rollout restart deployment/auth-service -n ${K8S_NAMESPACE}
@@ -161,8 +141,8 @@ pipeline {
                 echo '🔍 Verifying deployment status...'
                 script {
                     // Wait for rollouts to complete
-                    sh """
-                        echo "Waiting for deployments to be ready..."
+                    bat """
+                        echo Waiting for deployments to be ready...
                         kubectl rollout status deployment/frontend -n ${K8S_NAMESPACE} --timeout=5m
                         kubectl rollout status deployment/gateway -n ${K8S_NAMESPACE} --timeout=5m
                         kubectl rollout status deployment/auth-service -n ${K8S_NAMESPACE} --timeout=5m
@@ -173,18 +153,13 @@ pipeline {
                     """
                     
                     // Show final status
-                    sh """
-                        echo "\\n=== DEPLOYMENT STATUS ==="
+                    bat """
+                        echo === DEPLOYMENT STATUS ===
                         kubectl get deployments -n ${K8S_NAMESPACE}
-                        
-                        echo "\\n=== POD STATUS ==="
+                        echo === POD STATUS ===
                         kubectl get pods -n ${K8S_NAMESPACE} -o wide
-                        
-                        echo "\\n=== SERVICE STATUS ==="
+                        echo === SERVICE STATUS ===
                         kubectl get services -n ${K8S_NAMESPACE}
-                        
-                        echo "\\n=== NODE DISTRIBUTION ==="
-                        kubectl get pods -n ${K8S_NAMESPACE} -o wide | awk '{print \$1, \$7}' | column -t
                     """
                 }
                 echo '✅ Deployment verification complete!'
@@ -196,15 +171,15 @@ pipeline {
                 echo '💊 Running health checks...'
                 script {
                     // Optional: Add basic health checks
-                    sh """
-                        echo "Checking if all pods are running..."
-                        PENDING=\$(kubectl get pods -n ${K8S_NAMESPACE} --field-selector=status.phase!=Running --no-headers 2>/dev/null | wc -l)
-                        if [ \$PENDING -gt 0 ]; then
-                            echo "⚠️  Warning: \$PENDING pods are not in Running state"
+                    powershell """
+                        Write-Host "Checking if all pods are running..."
+                        \$pending = kubectl get pods -n ${K8S_NAMESPACE} --field-selector=status.phase!=Running --no-headers 2>`$null
+                        if (\$pending) {
+                            Write-Host "⚠️  Warning: Some pods are not in Running state"
                             kubectl get pods -n ${K8S_NAMESPACE} --field-selector=status.phase!=Running
-                        else
-                            echo "✅ All pods are running!"
-                        fi
+                        } else {
+                            Write-Host "✅ All pods are running!"
+                        }
                     """
                 }
             }
@@ -222,17 +197,17 @@ pipeline {
             echo '❌ Pipeline failed! Check logs for details.'
             echo "Build #${BUILD_NUMBER} - FAILED"
             // Show recent pod events for debugging
-            sh """
-                echo "\\n=== RECENT EVENTS ==="
-                kubectl get events -n ${K8S_NAMESPACE} --sort-by='.lastTimestamp' | tail -20
+            bat """
+                echo === RECENT EVENTS ===
+                kubectl get events -n ${K8S_NAMESPACE} --sort-by=.lastTimestamp
             """
             // Optional: Send failure notification
         }
         
         always {
             echo '🧹 Cleaning up old Docker images...'
-            sh """
-                docker image prune -af --filter "until=24h" || true
+            bat """
+                docker image prune -af --filter "until=24h" || exit 0
             """
         }
     }
