@@ -5,3 +5,4 @@ djangorestframework-simplejwt
 pymongo
 requests
 PyJWT
+gunicorn

@@ -1,10 +1,7 @@
-# Django and REST Framework
-django>=4.2.0
-djangorestframework>=3.14.0
-channels>=4.0.0
-asgiref>=3.7.0
-
-# GeoIP for IP to Country conversion
-geoip2>=4.7.0
-maxminddb>=2.2.0
-
+django
+djangorestframework
+PyJWT
+asgiref
+channels
+daphne
+geoip2
