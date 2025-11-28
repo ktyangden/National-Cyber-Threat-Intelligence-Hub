@@ -49,14 +49,14 @@ export function SimpleHeader() {
         <Link to="/home">
           <div className="flex items-center gap-2">
             <img
-              src="https://res.cloudinary.com/dykzzd9sy/image/upload/v1760186291/lucifer_face_tdgrnv.png"
+              src="https://res.cloudinary.com/dykzzd9sy/image/upload/v1763040855/logo_cykuw9.png"
               className="size-6"
               alt="ThreatVista Logo"
             />
             <p className="font-inter text-lg font-bold">ThreatVista</p>
           </div>
         </Link>
-        <div className="hidden items-center gap-2 lg:flex">
+        <div className="hidden items-center gap-1 lg:flex">
           {links.map((link) => (
             <Link
               key={link.href}
@@ -68,7 +68,7 @@ export function SimpleHeader() {
           ))}
           
           {user ? (
-            <div className="flex items-center gap-2 ml-4">
+            <div className="flex items-center gap-2">
               <Link to="/honeypage">
                 <Button variant="outline">Honeypage</Button>
               </Link>
@@ -82,7 +82,7 @@ export function SimpleHeader() {
                   alt={user.username}
                   className="border-2 border-neutral-300 dark:border-neutral-800 w-9 h-9 rounded-md cursor-pointer object-cover"
                 />
-                <span className="absolute top-10 right-0 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                <span className="absolute top-10 bg-white dark:bg-black text-black dark:text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
                   {user.username}
                 </span>
               </div>

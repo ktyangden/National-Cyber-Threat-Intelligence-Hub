@@ -45,23 +45,18 @@ export default function MaliciousUrls() {
       
       console.log('URLhaus response:', data);
       
-      // Parse URLhaus data format
       let urlList: any[] = [];
       
       if (Array.isArray(data)) {
         urlList = data;
       } else if (data && typeof data === 'object') {
         if (Array.isArray(data.urls)) {
-           // Standard URLhaus format: { query_status: "ok", urls: [...] }
            urlList = data.urls;
         } else {
-           // json_recent format: { "id": [ {...} ], "id2": [ {...} ] }
-           // We need to get values and flatten the arrays
            const values = Object.values(data);
            if (values.length > 0 && Array.isArray(values[0])) {
              urlList = values.flat();
            } else {
-             // Fallback for other object formats
              urlList = values.filter((item): item is any => 
                typeof item === 'object' && item !== null && 'url' in item
              );
@@ -71,7 +66,6 @@ export default function MaliciousUrls() {
       
       const formattedUrls: MaliciousURL[] = urlList
         .filter((item: any) => {
-          // Filter for valid entries with URL and online status
           return item && 
                  item.url && 
                  typeof item.url === 'string' &&
@@ -86,7 +80,6 @@ export default function MaliciousUrls() {
         }))
         .slice(0, 1000); // Limit to 1000 most recent
 
-      console.log(`Parsed ${formattedUrls.length} malicious URLs`); // Debug log
       setUrls(formattedUrls);
       setLastUpdated(new Date());
     } catch (err) {
@@ -101,7 +94,6 @@ export default function MaliciousUrls() {
     fetchMaliciousUrls();
   }, [fetchMaliciousUrls]);
 
-  // Filter URLs by search query
   const filteredUrls = useMemo(() => {
     if (!searchQuery.trim()) return urls;
     const query = searchQuery.toLowerCase().trim();
@@ -146,7 +138,7 @@ export default function MaliciousUrls() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-foreground">Latest Malicious URLs</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground">Malicious URLs</h2>
             <p className="text-xs sm:text-sm text-muted-foreground">
               Active malicious URLs from URLhaus
               {lastUpdated && (
