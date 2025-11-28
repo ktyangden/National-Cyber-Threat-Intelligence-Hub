@@ -135,18 +135,6 @@ pipeline {
                         kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/data-ingestion -n ${K8S_NAMESPACE}
                     """
                 }
-                    
-                    // Force rolling update to pull latest images
-                    bat """
-                        kubectl rollout restart deployment/frontend -n ${K8S_NAMESPACE}
-                        kubectl rollout restart deployment/gateway -n ${K8S_NAMESPACE}
-                        kubectl rollout restart deployment/auth-service -n ${K8S_NAMESPACE}
-                        kubectl rollout restart deployment/log-service -n ${K8S_NAMESPACE}
-                        kubectl rollout restart deployment/ml-service -n ${K8S_NAMESPACE}
-                        kubectl rollout restart deployment/etl-service -n ${K8S_NAMESPACE}
-                        kubectl rollout restart deployment/data-ingestion -n ${K8S_NAMESPACE}
-                    """
-                }
                 echo 'Deployment commands executed!'
             }
         }
