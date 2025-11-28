@@ -5,7 +5,7 @@ pipeline {
         // Docker Hub credentials (stored in Jenkins credentials)
         DOCKER_REGISTRY = 'docker.io'
         DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
-        DOCKER_USERNAME = 'yourdockerhubusername'  // CHANGE THIS!
+        DOCKER_USERNAME = 'harshwardhan19'  
         
         // Image tag - uses Jenkins build number for versioning
         IMAGE_TAG = "${BUILD_NUMBER}"
@@ -32,56 +32,56 @@ pipeline {
                         'Frontend': {
                             echo 'Building Frontend...'
                             sh """
-                                docker build -t ${DOCKER_USERNAME}/threat-intel-frontend:${IMAGE_TAG} \
-                                             -t ${DOCKER_USERNAME}/threat-intel-frontend:latest \
+                                docker build -t ${DOCKER_USERNAME}/frontend:${IMAGE_TAG} \
+                                             -t ${DOCKER_USERNAME}/frontend:latest \
                                              ./Frontend
                             """
                         },
                         'Gateway': {
                             echo 'Building Gateway...'
                             sh """
-                                docker build -t ${DOCKER_USERNAME}/threat-intel-gateway:${IMAGE_TAG} \
-                                             -t ${DOCKER_USERNAME}/threat-intel-gateway:latest \
+                                docker build -t ${DOCKER_USERNAME}/gateway:${IMAGE_TAG} \
+                                             -t ${DOCKER_USERNAME}/gateway:latest \
                                              ./backend-services/gateway
                             """
                         },
                         'Auth Service': {
                             echo 'Building Auth Service...'
                             sh """
-                                docker build -t ${DOCKER_USERNAME}/threat-intel-auth:${IMAGE_TAG} \
-                                             -t ${DOCKER_USERNAME}/threat-intel-auth:latest \
+                                docker build -t ${DOCKER_USERNAME}/auth-service:${IMAGE_TAG} \
+                                             -t ${DOCKER_USERNAME}/auth-service:latest \
                                              ./backend-services/auth-service
                             """
                         },
                         'Log Service': {
                             echo 'Building Log Service...'
                             sh """
-                                docker build -t ${DOCKER_USERNAME}/threat-intel-log:${IMAGE_TAG} \
-                                             -t ${DOCKER_USERNAME}/threat-intel-log:latest \
+                                docker build -t ${DOCKER_USERNAME}/log-service:${IMAGE_TAG} \
+                                             -t ${DOCKER_USERNAME}/log-service:latest \
                                              ./backend-services/log-service
                             """
                         },
                         'ML Service': {
                             echo 'Building ML Service...'
                             sh """
-                                docker build -t ${DOCKER_USERNAME}/threat-intel-ml:${IMAGE_TAG} \
-                                             -t ${DOCKER_USERNAME}/threat-intel-ml:latest \
+                                docker build -t ${DOCKER_USERNAME}/ml-service:${IMAGE_TAG} \
+                                             -t ${DOCKER_USERNAME}/ml-service:latest \
                                              ./backend-services/ml-service
                             """
                         },
                         'ETL Service': {
                             echo 'Building ETL Service...'
                             sh """
-                                docker build -t ${DOCKER_USERNAME}/threat-intel-etl:${IMAGE_TAG} \
-                                             -t ${DOCKER_USERNAME}/threat-intel-etl:latest \
+                                docker build -t ${DOCKER_USERNAME}/etl-service:${IMAGE_TAG} \
+                                             -t ${DOCKER_USERNAME}/etl-service:latest \
                                              ./backend-services/etl/etl-service
                             """
                         },
                         'Data Ingestion': {
                             echo 'Building Data Ingestion...'
                             sh """
-                                docker build -t ${DOCKER_USERNAME}/threat-intel-data-ingestion:${IMAGE_TAG} \
-                                             -t ${DOCKER_USERNAME}/threat-intel-data-ingestion:latest \
+                                docker build -t ${DOCKER_USERNAME}/data-ingestion:${IMAGE_TAG} \
+                                             -t ${DOCKER_USERNAME}/data-ingestion:latest \
                                              ./backend-services/etl/data-ingestion
                             """
                         }
@@ -99,26 +99,26 @@ pipeline {
                     docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS_ID) {
                         // Push all images
                         sh """
-                            docker push ${DOCKER_USERNAME}/threat-intel-frontend:${IMAGE_TAG}
-                            docker push ${DOCKER_USERNAME}/threat-intel-frontend:latest
+                            docker push ${DOCKER_USERNAME}/frontend:${IMAGE_TAG}
+                            docker push ${DOCKER_USERNAME}/frontend:latest
                             
-                            docker push ${DOCKER_USERNAME}/threat-intel-gateway:${IMAGE_TAG}
-                            docker push ${DOCKER_USERNAME}/threat-intel-gateway:latest
+                            docker push ${DOCKER_USERNAME}/gateway:${IMAGE_TAG}
+                            docker push ${DOCKER_USERNAME}/gateway:latest
                             
-                            docker push ${DOCKER_USERNAME}/threat-intel-auth:${IMAGE_TAG}
-                            docker push ${DOCKER_USERNAME}/threat-intel-auth:latest
+                            docker push ${DOCKER_USERNAME}/auth-service:${IMAGE_TAG}
+                            docker push ${DOCKER_USERNAME}/auth-service:latest
                             
-                            docker push ${DOCKER_USERNAME}/threat-intel-log:${IMAGE_TAG}
-                            docker push ${DOCKER_USERNAME}/threat-intel-log:latest
+                            docker push ${DOCKER_USERNAME}/log-service:${IMAGE_TAG}
+                            docker push ${DOCKER_USERNAME}/log-service:latest
                             
-                            docker push ${DOCKER_USERNAME}/threat-intel-ml:${IMAGE_TAG}
-                            docker push ${DOCKER_USERNAME}/threat-intel-ml:latest
+                            docker push ${DOCKER_USERNAME}/ml-service:${IMAGE_TAG}
+                            docker push ${DOCKER_USERNAME}/ml-service:latest
                             
-                            docker push ${DOCKER_USERNAME}/threat-intel-etl:${IMAGE_TAG}
-                            docker push ${DOCKER_USERNAME}/threat-intel-etl:latest
+                            docker push ${DOCKER_USERNAME}/etl-service:${IMAGE_TAG}
+                            docker push ${DOCKER_USERNAME}/etl-service:latest
                             
-                            docker push ${DOCKER_USERNAME}/threat-intel-data-ingestion:${IMAGE_TAG}
-                            docker push ${DOCKER_USERNAME}/threat-intel-data-ingestion:latest
+                            docker push ${DOCKER_USERNAME}/data-ingestion:${IMAGE_TAG}
+                            docker push ${DOCKER_USERNAME}/data-ingestion:latest
                         """
                     }
                 }

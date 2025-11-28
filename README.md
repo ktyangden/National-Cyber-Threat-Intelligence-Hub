@@ -14,3 +14,5 @@ Database: MongoDB
 Threat Data Source: Cowrie Honeypot + External APIs
 
 Deployment: Docker
+
+The jenkins pipeline has been added.
