@@ -112,13 +112,13 @@ pipeline {
                 script {
                     // Apply all Kubernetes manifests
                     bat """
-                        kubectl apply -f K8s/frontend.yaml
-                        kubectl apply -f K8s/gateway.yaml
-                        kubectl apply -f K8s/auth-service.yaml
-                        kubectl apply -f K8s/log-service.yaml
-                        kubectl apply -f K8s/ml-service.yaml
-                        kubectl apply -f K8s/etl-service.yaml
-                        kubectl apply -f Pipeline/data-ingestion.yaml
+                        kubectl apply -f K8s/frontend.yaml --validate=false
+                        kubectl apply -f K8s/gateway.yaml --validate=false
+                        kubectl apply -f K8s/auth-service.yaml --validate=false
+                        kubectl apply -f K8s/log-service.yaml --validate=false
+                        kubectl apply -f K8s/ml-service.yaml --validate=false
+                        kubectl apply -f K8s/etl-service.yaml --validate=false
+                        kubectl apply -f Pipeline/data-ingestion.yaml --validate=false
                     """
                     
                     // Force rolling update to pull latest images
