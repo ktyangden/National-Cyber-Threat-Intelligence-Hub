@@ -1,0 +1,239 @@
+pipeline {
+    agent any
+    
+    environment {
+        // Docker Hub credentials (stored in Jenkins credentials)
+        DOCKER_REGISTRY = 'docker.io'
+        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
+        DOCKER_USERNAME = 'yourdockerhubusername'  // CHANGE THIS!
+        
+        // Image tag - uses Jenkins build number for versioning
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        
+        // Kubernetes namespace (using default for simplicity)
+        K8S_NAMESPACE = 'default'
+    }
+    
+    stages {
+        stage('Checkout Code') {
+            steps {
+                echo '📥 Checking out code from GitHub...'
+                checkout scm
+                sh 'git log -1 --pretty=format:"%h - %an, %ar : %s"'
+            }
+        }
+        
+        stage('Build Docker Images') {
+            steps {
+                echo '🔨 Building Docker images for all microservices...'
+                script {
+                    // Build all images in parallel for faster builds
+                    parallel(
+                        'Frontend': {
+                            echo 'Building Frontend...'
+                            sh """
+                                docker build -t ${DOCKER_USERNAME}/threat-intel-frontend:${IMAGE_TAG} \
+                                             -t ${DOCKER_USERNAME}/threat-intel-frontend:latest \
+                                             ./Frontend
+                            """
+                        },
+                        'Gateway': {
+                            echo 'Building Gateway...'
+                            sh """
+                                docker build -t ${DOCKER_USERNAME}/threat-intel-gateway:${IMAGE_TAG} \
+                                             -t ${DOCKER_USERNAME}/threat-intel-gateway:latest \
+                                             ./backend-services/gateway
+                            """
+                        },
+                        'Auth Service': {
+                            echo 'Building Auth Service...'
+                            sh """
+                                docker build -t ${DOCKER_USERNAME}/threat-intel-auth:${IMAGE_TAG} \
+                                             -t ${DOCKER_USERNAME}/threat-intel-auth:latest \
+                                             ./backend-services/auth-service
+                            """
+                        },
+                        'Log Service': {
+                            echo 'Building Log Service...'
+                            sh """
+                                docker build -t ${DOCKER_USERNAME}/threat-intel-log:${IMAGE_TAG} \
+                                             -t ${DOCKER_USERNAME}/threat-intel-log:latest \
+                                             ./backend-services/log-service
+                            """
+                        },
+                        'ML Service': {
+                            echo 'Building ML Service...'
+                            sh """
+                                docker build -t ${DOCKER_USERNAME}/threat-intel-ml:${IMAGE_TAG} \
+                                             -t ${DOCKER_USERNAME}/threat-intel-ml:latest \
+                                             ./backend-services/ml-service
+                            """
+                        },
+                        'ETL Service': {
+                            echo 'Building ETL Service...'
+                            sh """
+                                docker build -t ${DOCKER_USERNAME}/threat-intel-etl:${IMAGE_TAG} \
+                                             -t ${DOCKER_USERNAME}/threat-intel-etl:latest \
+                                             ./backend-services/etl/etl-service
+                            """
+                        },
+                        'Data Ingestion': {
+                            echo 'Building Data Ingestion...'
+                            sh """
+                                docker build -t ${DOCKER_USERNAME}/threat-intel-data-ingestion:${IMAGE_TAG} \
+                                             -t ${DOCKER_USERNAME}/threat-intel-data-ingestion:latest \
+                                             ./backend-services/etl/data-ingestion
+                            """
+                        }
+                    )
+                }
+                echo '✅ All images built successfully!'
+            }
+        }
+        
+        stage('Push Images to Docker Hub') {
+            steps {
+                echo '📤 Pushing images to Docker Hub...'
+                script {
+                    // Login to Docker Hub using credentials from Jenkins
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS_ID) {
+                        // Push all images
+                        sh """
+                            docker push ${DOCKER_USERNAME}/threat-intel-frontend:${IMAGE_TAG}
+                            docker push ${DOCKER_USERNAME}/threat-intel-frontend:latest
+                            
+                            docker push ${DOCKER_USERNAME}/threat-intel-gateway:${IMAGE_TAG}
+                            docker push ${DOCKER_USERNAME}/threat-intel-gateway:latest
+                            
+                            docker push ${DOCKER_USERNAME}/threat-intel-auth:${IMAGE_TAG}
+                            docker push ${DOCKER_USERNAME}/threat-intel-auth:latest
+                            
+                            docker push ${DOCKER_USERNAME}/threat-intel-log:${IMAGE_TAG}
+                            docker push ${DOCKER_USERNAME}/threat-intel-log:latest
+                            
+                            docker push ${DOCKER_USERNAME}/threat-intel-ml:${IMAGE_TAG}
+                            docker push ${DOCKER_USERNAME}/threat-intel-ml:latest
+                            
+                            docker push ${DOCKER_USERNAME}/threat-intel-etl:${IMAGE_TAG}
+                            docker push ${DOCKER_USERNAME}/threat-intel-etl:latest
+                            
+                            docker push ${DOCKER_USERNAME}/threat-intel-data-ingestion:${IMAGE_TAG}
+                            docker push ${DOCKER_USERNAME}/threat-intel-data-ingestion:latest
+                        """
+                    }
+                }
+                echo '✅ All images pushed to registry!'
+            }
+        }
+        
+        stage('Deploy to Minikube') {
+            steps {
+                echo '🚀 Deploying to Kubernetes (Minikube)...'
+                script {
+                    // Apply all Kubernetes manifests
+                    sh """
+                        kubectl apply -f K8s/frontend.yaml
+                        kubectl apply -f K8s/gateway.yaml
+                        kubectl apply -f K8s/auth-service.yaml
+                        kubectl apply -f K8s/log-service.yaml
+                        kubectl apply -f K8s/ml-service.yaml
+                        kubectl apply -f K8s/etl-service.yaml
+                        kubectl apply -f Pipeline/data-ingestion.yaml
+                    """
+                    
+                    // Force rolling update to pull latest images
+                    sh """
+                        kubectl rollout restart deployment/frontend -n ${K8S_NAMESPACE}
+                        kubectl rollout restart deployment/gateway -n ${K8S_NAMESPACE}
+                        kubectl rollout restart deployment/auth-service -n ${K8S_NAMESPACE}
+                        kubectl rollout restart deployment/log-service -n ${K8S_NAMESPACE}
+                        kubectl rollout restart deployment/ml-service -n ${K8S_NAMESPACE}
+                        kubectl rollout restart deployment/etl-service -n ${K8S_NAMESPACE}
+                        kubectl rollout restart deployment/data-ingestion -n ${K8S_NAMESPACE}
+                    """
+                }
+                echo '✅ Deployment commands executed!'
+            }
+        }
+        
+        stage('Verify Deployment') {
+            steps {
+                echo '🔍 Verifying deployment status...'
+                script {
+                    // Wait for rollouts to complete
+                    sh """
+                        echo "Waiting for deployments to be ready..."
+                        kubectl rollout status deployment/frontend -n ${K8S_NAMESPACE} --timeout=5m
+                        kubectl rollout status deployment/gateway -n ${K8S_NAMESPACE} --timeout=5m
+                        kubectl rollout status deployment/auth-service -n ${K8S_NAMESPACE} --timeout=5m
+                        kubectl rollout status deployment/log-service -n ${K8S_NAMESPACE} --timeout=5m
+                        kubectl rollout status deployment/ml-service -n ${K8S_NAMESPACE} --timeout=5m
+                        kubectl rollout status deployment/etl-service -n ${K8S_NAMESPACE} --timeout=5m
+                        kubectl rollout status deployment/data-ingestion -n ${K8S_NAMESPACE} --timeout=5m
+                    """
+                    
+                    // Show final status
+                    sh """
+                        echo "\\n=== DEPLOYMENT STATUS ==="
+                        kubectl get deployments -n ${K8S_NAMESPACE}
+                        
+                        echo "\\n=== POD STATUS ==="
+                        kubectl get pods -n ${K8S_NAMESPACE} -o wide
+                        
+                        echo "\\n=== SERVICE STATUS ==="
+                        kubectl get services -n ${K8S_NAMESPACE}
+                        
+                        echo "\\n=== NODE DISTRIBUTION ==="
+                        kubectl get pods -n ${K8S_NAMESPACE} -o wide | awk '{print \$1, \$7}' | column -t
+                    """
+                }
+                echo '✅ Deployment verification complete!'
+            }
+        }
+        
+        stage('Health Check') {
+            steps {
+                echo '💊 Running health checks...'
+                script {
+                    // Optional: Add basic health checks
+                    sh """
+                        echo "Checking if all pods are running..."
+                        PENDING=\$(kubectl get pods -n ${K8S_NAMESPACE} --field-selector=status.phase!=Running --no-headers 2>/dev/null | wc -l)
+                        if [ \$PENDING -gt 0 ]; then
+                            echo "⚠️  Warning: \$PENDING pods are not in Running state"
+                            kubectl get pods -n ${K8S_NAMESPACE} --field-selector=status.phase!=Running
+                        else
+                            echo "✅ All pods are running!"
+                        fi
+                    """
+                }
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo '🎉 Pipeline completed successfully! All services deployed to Minikube.'
+            echo "Build #${BUILD_NUMBER} - SUCCESS"
+            // Optional: Send notification (Slack, email, etc.)
+        }
+        
+        failure {
+            echo '❌ Pipeline failed! Check logs for details.'
+            echo "Build #${BUILD_NUMBER} - FAILED"
+            // Show recent pod events for debugging
+            sh """
+                echo "\\n=== RECENT EVENTS ==="
+                kubectl get events -n ${K8S_NAMESPACE} --sort-by='.lastTimestamp' | tail -20
+            """
+            // Optional: Send failure notification
+        }
+        
+        always {
+            echo '🧹 Cleaning up old Docker images...'
+            sh """
+                docker image prune -af --filter "until=24h" || true
+            """
+        }
+    }
+}
