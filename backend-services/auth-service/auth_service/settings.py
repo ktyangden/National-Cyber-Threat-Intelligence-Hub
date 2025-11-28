@@ -1,102 +1,80 @@
-# ============================================
-# Django Settings — Auth Service (Microservice)
-# ============================================
-
 from pathlib import Path
 from datetime import timedelta
 
-# -----------------------------
-# 1. BASE & CORE CONFIG
-# -----------------------------
-BASE_DIR = Path(__file__).resolve().parent.parent  # Project root path
-SECRET_KEY = "replace-this-with-a-strong-secret"   # Keep secret in prod
-DEBUG = True                                       # Show errors (False in prod)
-ALLOWED_HOSTS = ["*"]                              # Allowed domains
+# BASE & CORE CONFIG
+BASE_DIR = Path(__file__).resolve().parent.parent
+SECRET_KEY = "HIHIAHAHAHOHO"
+DEBUG = True
+ALLOWED_HOSTS = ["*"]
 
-# -----------------------------
-# 2. APPLICATIONS
-# -----------------------------
+# APPLICATIONS
 INSTALLED_APPS = [
-    # Core Django apps (minimum required)
-    "django.contrib.auth",          # User auth & permissions
-    "django.contrib.contenttypes",  # Required by auth
+    # Core Django apps
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
     
     # Third-party apps
-    "rest_framework",               # Django REST Framework (API layer)
-    "corsheaders",                  # CORS for frontend communication
+    "rest_framework",
+    "corsheaders",
 
     # Your apps
     "userAuth",
     "microAuth",
 ]
 
-# -----------------------------
-# 3. MIDDLEWARE
-# -----------------------------
+# MIDDLEWARE
 MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",  # Security headers
-    "corsheaders.middleware.CorsMiddleware",          # Handles CORS requests
-    "django.middleware.common.CommonMiddleware",      # Common HTTP tweaks
+    "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
 ]
 
 # Allow all origins (for dev)
 CORS_ALLOW_ALL_ORIGINS = True
 
-# -----------------------------
-# 4. URLS & ENTRY POINTS
-# -----------------------------
-ROOT_URLCONF = "auth_service.urls"                  # Main URL router
-WSGI_APPLICATION = "auth_service.wsgi.application"  # WSGI entry point
+# URLS & ENTRY POINTS
+ROOT_URLCONF = "auth_service.urls"
+WSGI_APPLICATION = "auth_service.wsgi.application"
 
-# -----------------------------
-# 5. DATABASE
-# -----------------------------
-# Empty because using external DB (e.g., Mongo)
+# DATABASE
 DATABASES = {}
 
-# -----------------------------
-# 6. TEMPLATES
-# -----------------------------
-# Still required by Django even if not used
+# TEMPLATES
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "APP_DIRS": True,   # Look inside app folders for templates
-        "OPTIONS": {},      # No template context processors
+        "APP_DIRS": True,
+        "OPTIONS": {},
     },
 ]
 
-# -----------------------------
-# 7. REST FRAMEWORK + JWT CONFIG
-# -----------------------------
+# REST FRAMEWORK + JWT CONFIG
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",  # JWT auth
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",  # Require auth globally
+        "rest_framework.permissions.IsAuthenticated",
     ),
 }
 
 JWT_ACCESS_SECRET = "super-secret-access-key"
 JWT_REFRESH_SECRET = "super-secret-refresh-key"
 
-# -----------------------------
-# 8. Google OAuth credentials
-# -----------------------------
-GOOGLE_CLIENT_ID = "your-google-client-id"
-GOOGLE_CLIENT_SECRET = "your-google-client-secret"
+# Google OAuth credentials
+import os
+from dotenv import load_dotenv
 
-# -----------------------------
-# 9. INTERNATIONALIZATION
-# -----------------------------
+load_dotenv()
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+
+# INTERNATIONALIZATION
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_TZ = True
 
-# -----------------------------
-# 10. STATIC FILES
-# -----------------------------
+# STATIC FILES
 STATIC_URL = "static/"
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

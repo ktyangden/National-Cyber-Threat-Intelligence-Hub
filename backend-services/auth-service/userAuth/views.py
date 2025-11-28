@@ -2,6 +2,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework import status
+from django.http import HttpResponse
 from bson import ObjectId
 from django.conf import settings
 import requests
@@ -11,9 +12,7 @@ from .db import users_collection
 from .serializers import UserSerializer
 from auth_service.tokens import ( create_access_token, create_refresh_token, verify_refresh_token, )
 
-# ============================
 # Register View
-# ============================
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
@@ -27,10 +26,7 @@ class RegisterView(APIView):
         user = create_user(email, password)
         return Response({"msg": "User registered successfully"}, status=201)
 
-
-# ============================
 # Login View
-# ============================
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
@@ -51,15 +47,14 @@ class LoginView(APIView):
             "refresh": refresh,
         }, status=200)
 
-
-# ============================
 # Google OAuth View
-# ============================
 class GoogleView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
         code = request.data.get("code")
+        print(f"Received code: {code}")
+
         if not code:
             return Response({"message": "Authorization code required"}, status=400)
 
@@ -99,6 +94,7 @@ class GoogleView(APIView):
             google_id = data.get("sub")
             email = data.get("email")
             name = data.get("name")
+            picture = data.get("picture")
 
             user = users_collection.find_one({"email": email})
             if not user:
@@ -107,9 +103,14 @@ class GoogleView(APIView):
                     "email": email,
                     "authProvider": "google",
                     "googleId": google_id,
+                    "avatar": picture,
                 }
                 users_collection.insert_one(user_data)
                 user = users_collection.find_one({"email": email})
+            else:
+                if user.get("avatar") != picture:
+                    users_collection.update_one({"email": email}, {"$set": {"avatar": picture}})
+                    user = users_collection.find_one({"email": email})
 
             user_id = str(user["_id"])
             access = create_access_token(user_id)
@@ -117,7 +118,11 @@ class GoogleView(APIView):
 
             return Response({
                 "message": "Google login successful",
-                "user": {"username": user.get("username"), "email": user.get("email")},
+                "user": {
+                    "username": user.get("username"), 
+                    "email": user.get("email"),
+                    "avatar": user.get("avatar")
+                },
                 "access": access,
                 "refresh": refresh,
             }, status=200)
@@ -126,10 +131,7 @@ class GoogleView(APIView):
             print("Google login error:", str(e))
             return Response({"message": "Google login failed"}, status=500)
 
-
-# ============================
 # Refresh Token View
-# ============================
 class RefreshView(APIView):
     permission_classes = [AllowAny]
 
@@ -154,10 +156,7 @@ class RefreshView(APIView):
             print("Token refresh error:", str(e))
             return Response({"message": str(e)}, status=403)
 
-
-# ============================
 # Get User Data View
-# ============================
 class GetDataView(APIView):
     permission_classes = [AllowAny]
 
@@ -187,3 +186,32 @@ class GetDataView(APIView):
         except Exception as e:
             print("Error getting data:", e)
             return Response({"error": "Server error"}, status=500)
+
+
+# Avatar Proxy View
+class AvatarProxyView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        avatar_url = request.query_params.get("url")
+        
+        if not avatar_url:
+            return HttpResponse("Missing avatar URL", status=400)
+
+        if not avatar_url.startswith("https://lh3.googleusercontent.com"):
+            return HttpResponse("Invalid avatar URL", status=400)
+        
+        try:
+            response = requests.get(avatar_url, timeout=5)
+            
+            if response.status_code == 200:
+                return HttpResponse(
+                    response.content,
+                    content_type=response.headers.get('Content-Type', 'image/jpeg')
+                )
+            else:
+                return HttpResponse("Failed to fetch avatar", status=response.status_code)
+                
+        except requests.RequestException as e:
+            print(f"Avatar proxy error: {str(e)}")
+            return HttpResponse(f"Error fetching avatar: {str(e)}", status=500)
