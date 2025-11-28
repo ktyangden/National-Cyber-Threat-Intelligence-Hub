@@ -23,7 +23,7 @@ spec:
                 - auth-gateway
       containers:
       - name: gateway
-        image: harshwardhan19/gateway:v2
+        image: harshwardhan19/gateway:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 3002
