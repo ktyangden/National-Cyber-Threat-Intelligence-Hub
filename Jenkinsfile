@@ -17,7 +17,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                echo '📥 Checking out code from GitHub...'
+                echo 'Checking out code from GitHub...'
                 checkout scm
                 bat 'git log -1 --pretty=format:"%%h - %%an, %%ar : %%s"'
             }
@@ -25,7 +25,7 @@ pipeline {
         
         stage('Build Docker Images') {
             steps {
-                echo '🔨 Building Docker images for all microservices...'
+                echo 'Building Docker images for all microservices...'
                 script {
                     // Build all images in parallel for faster builds
                     parallel(
@@ -73,13 +73,13 @@ pipeline {
                         }
                     )
                 }
-                echo '✅ All images built successfully!'
+                echo 'All images built successfully!'
             }
         }
         
         stage('Push Images to Docker Hub') {
             steps {
-                echo '📤 Pushing images to Docker Hub...'
+                echo 'Pushing images to Docker Hub...'
                 script {
                     // Login to Docker Hub using credentials from Jenkins
                     docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS_ID) {
@@ -102,7 +102,7 @@ pipeline {
                         """
                     }
                 }
-                echo '✅ All images pushed to registry!'
+                echo 'All images pushed to registry!'
             }
         }
         
@@ -132,13 +132,13 @@ pipeline {
                         kubectl rollout restart deployment/data-ingestion -n ${K8S_NAMESPACE}
                     """
                 }
-                echo '✅ Deployment commands executed!'
+                echo 'Deployment commands executed!'
             }
         }
         
         stage('Verify Deployment') {
             steps {
-                echo '🔍 Verifying deployment status...'
+                echo 'Verifying deployment status...'
                 script {
                     // Wait for rollouts to complete
                     bat """
@@ -162,24 +162,19 @@ pipeline {
                         kubectl get services -n ${K8S_NAMESPACE}
                     """
                 }
-                echo '✅ Deployment verification complete!'
+                echo 'Deployment verification complete!'
             }
         }
         
         stage('Health Check') {
             steps {
-                echo '💊 Running health checks...'
+                echo 'Running health checks...'
                 script {
                     // Optional: Add basic health checks
-                    powershell """
-                        Write-Host "Checking if all pods are running..."
-                        \$pending = kubectl get pods -n ${K8S_NAMESPACE} --field-selector=status.phase!=Running --no-headers 2>`$null
-                        if (\$pending) {
-                            Write-Host "⚠️  Warning: Some pods are not in Running state"
-                            kubectl get pods -n ${K8S_NAMESPACE} --field-selector=status.phase!=Running
-                        } else {
-                            Write-Host "✅ All pods are running!"
-                        }
+                    bat """
+                        echo Checking if all pods are running...
+                        kubectl get pods -n ${K8S_NAMESPACE}
+                        echo Health check complete!
                     """
                 }
             }
@@ -188,13 +183,13 @@ pipeline {
     
     post {
         success {
-            echo '🎉 Pipeline completed successfully! All services deployed to Minikube.'
+            echo 'Pipeline completed successfully! All services deployed to Minikube.'
             echo "Build #${BUILD_NUMBER} - SUCCESS"
             // Optional: Send notification (Slack, email, etc.)
         }
         
         failure {
-            echo '❌ Pipeline failed! Check logs for details.'
+            echo 'Pipeline failed! Check logs for details.'
             echo "Build #${BUILD_NUMBER} - FAILED"
             // Show recent pod events for debugging
             bat """
@@ -205,7 +200,7 @@ pipeline {
         }
         
         always {
-            echo '🧹 Cleaning up old Docker images...'
+            echo 'Cleaning up old Docker images...'
             bat """
                 docker image prune -af --filter "until=24h" || exit 0
             """
