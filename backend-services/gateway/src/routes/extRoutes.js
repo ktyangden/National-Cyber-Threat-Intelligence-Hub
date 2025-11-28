@@ -22,7 +22,7 @@ router.get("/logs/recent-logs", async (req, res) => {
 
 router.get("/logs/persistent-stats", async (req, res) => {
   try {
-    const response = await axios.get(`http://localhost:8001/persistent-stats`, {
+    const response = await axios.get(`http://log-service:8001/persistent-stats`, {
       headers: { Accept: "application/json" }
     });
 
