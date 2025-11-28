@@ -110,32 +110,31 @@ pipeline {
             steps {
                 echo 'Deploying to Kubernetes (Minikube)...'
                 script {
-                    // DEBUG: Check environment and kubeconfig
-                    bat """
-                        echo === DIAGNOSTIC INFO ===
-                        echo KUBECONFIG environment variable:
-                        echo %KUBECONFIG%
-                        echo.
-                        echo Current user:
-                        whoami
-                        echo.
-                        echo Kubeconfig file location:
-                        kubectl config view --minify
-                        echo.
-                        echo Testing connection to Minikube:
-                        kubectl cluster-info
-                    """
+                    // Set kubeconfig path
+                    def kubeconfigPath = 'C:\\ProgramData\\Jenkins\\.jenkins\\.kube\\config'
                     
                     // Apply all Kubernetes manifests
                     bat """
-                        kubectl apply -f K8s/frontend.yaml --validate=false
-                        kubectl apply -f K8s/gateway.yaml --validate=false
-                        kubectl apply -f K8s/auth-service.yaml --validate=false
-                        kubectl apply -f K8s/log-service.yaml --validate=false
-                        kubectl apply -f K8s/ml-service.yaml --validate=false
-                        kubectl apply -f K8s/etl-service.yaml --validate=false
-                        kubectl apply -f Pipeline/data-ingestion.yaml --validate=false
+                        kubectl --kubeconfig="${kubeconfigPath}" apply -f K8s/frontend.yaml --validate=false
+                        kubectl --kubeconfig="${kubeconfigPath}" apply -f K8s/gateway.yaml --validate=false
+                        kubectl --kubeconfig="${kubeconfigPath}" apply -f K8s/auth-service.yaml --validate=false
+                        kubectl --kubeconfig="${kubeconfigPath}" apply -f K8s/log-service.yaml --validate=false
+                        kubectl --kubeconfig="${kubeconfigPath}" apply -f K8s/ml-service.yaml --validate=false
+                        kubectl --kubeconfig="${kubeconfigPath}" apply -f K8s/etl-service.yaml --validate=false
+                        kubectl --kubeconfig="${kubeconfigPath}" apply -f Pipeline/data-ingestion.yaml --validate=false
                     """
+                    
+                    // Force rolling update to pull latest images
+                    bat """
+                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/frontend -n ${K8S_NAMESPACE}
+                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/gateway -n ${K8S_NAMESPACE}
+                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/auth-service -n ${K8S_NAMESPACE}
+                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/log-service -n ${K8S_NAMESPACE}
+                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/ml-service -n ${K8S_NAMESPACE}
+                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/etl-service -n ${K8S_NAMESPACE}
+                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/data-ingestion -n ${K8S_NAMESPACE}
+                    """
+                }
                     
                     // Force rolling update to pull latest images
                     bat """
@@ -156,26 +155,28 @@ pipeline {
             steps {
                 echo 'Verifying deployment status...'
                 script {
+                    def kubeconfigPath = 'C:\\ProgramData\\Jenkins\\.jenkins\\.kube\\config'
+                    
                     // Wait for rollouts to complete
                     bat """
                         echo Waiting for deployments to be ready...
-                        kubectl rollout status deployment/frontend -n ${K8S_NAMESPACE} --timeout=5m
-                        kubectl rollout status deployment/gateway -n ${K8S_NAMESPACE} --timeout=5m
-                        kubectl rollout status deployment/auth-service -n ${K8S_NAMESPACE} --timeout=5m
-                        kubectl rollout status deployment/log-service -n ${K8S_NAMESPACE} --timeout=5m
-                        kubectl rollout status deployment/ml-service -n ${K8S_NAMESPACE} --timeout=5m
-                        kubectl rollout status deployment/etl-service -n ${K8S_NAMESPACE} --timeout=5m
-                        kubectl rollout status deployment/data-ingestion -n ${K8S_NAMESPACE} --timeout=5m
+                        kubectl --kubeconfig="${kubeconfigPath}" rollout status deployment/frontend -n ${K8S_NAMESPACE} --timeout=5m
+                        kubectl --kubeconfig="${kubeconfigPath}" rollout status deployment/gateway -n ${K8S_NAMESPACE} --timeout=5m
+                        kubectl --kubeconfig="${kubeconfigPath}" rollout status deployment/auth-service -n ${K8S_NAMESPACE} --timeout=5m
+                        kubectl --kubeconfig="${kubeconfigPath}" rollout status deployment/log-service -n ${K8S_NAMESPACE} --timeout=5m
+                        kubectl --kubeconfig="${kubeconfigPath}" rollout status deployment/ml-service -n ${K8S_NAMESPACE} --timeout=5m
+                        kubectl --kubeconfig="${kubeconfigPath}" rollout status deployment/etl-service -n ${K8S_NAMESPACE} --timeout=5m
+                        kubectl --kubeconfig="${kubeconfigPath}" rollout status deployment/data-ingestion -n ${K8S_NAMESPACE} --timeout=5m
                     """
                     
                     // Show final status
                     bat """
                         echo === DEPLOYMENT STATUS ===
-                        kubectl get deployments -n ${K8S_NAMESPACE}
+                        kubectl --kubeconfig="${kubeconfigPath}" get deployments -n ${K8S_NAMESPACE}
                         echo === POD STATUS ===
-                        kubectl get pods -n ${K8S_NAMESPACE} -o wide
+                        kubectl --kubeconfig="${kubeconfigPath}" get pods -n ${K8S_NAMESPACE} -o wide
                         echo === SERVICE STATUS ===
-                        kubectl get services -n ${K8S_NAMESPACE}
+                        kubectl --kubeconfig="${kubeconfigPath}" get services -n ${K8S_NAMESPACE}
                     """
                 }
                 echo 'Deployment verification complete!'
@@ -186,10 +187,11 @@ pipeline {
             steps {
                 echo 'Running health checks...'
                 script {
+                    def kubeconfigPath = 'C:\\ProgramData\\Jenkins\\.jenkins\\.kube\\config'
                     // Optional: Add basic health checks
                     bat """
                         echo Checking if all pods are running...
-                        kubectl get pods -n ${K8S_NAMESPACE}
+                        kubectl --kubeconfig="${kubeconfigPath}" get pods -n ${K8S_NAMESPACE}
                         echo Health check complete!
                     """
                 }
@@ -210,7 +212,7 @@ pipeline {
             // Show recent pod events for debugging
             bat """
                 echo === RECENT EVENTS ===
-                kubectl get events -n ${K8S_NAMESPACE} --sort-by=.lastTimestamp
+                kubectl --kubeconfig="C:\\ProgramData\\Jenkins\\.jenkins\\.kube\\config" get events -n ${K8S_NAMESPACE} --sort-by=.lastTimestamp
             """
             // Optional: Send failure notification
         }
