@@ -108,8 +108,24 @@ pipeline {
         
         stage('Deploy to Minikube') {
             steps {
-                echo '🚀 Deploying to Kubernetes (Minikube)...'
+                echo 'Deploying to Kubernetes (Minikube)...'
                 script {
+                    // DEBUG: Check environment and kubeconfig
+                    bat """
+                        echo === DIAGNOSTIC INFO ===
+                        echo KUBECONFIG environment variable:
+                        echo %KUBECONFIG%
+                        echo.
+                        echo Current user:
+                        whoami
+                        echo.
+                        echo Kubeconfig file location:
+                        kubectl config view --minify
+                        echo.
+                        echo Testing connection to Minikube:
+                        kubectl cluster-info
+                    """
+                    
                     // Apply all Kubernetes manifests
                     bat """
                         kubectl apply -f K8s/frontend.yaml --validate=false
