@@ -3,7 +3,7 @@ const axios = require('axios');
 const register = async (req, res) => {
     const { username, email, password } = req.body;
     try {
-        await axios.post("http://localhost:8005/api/auth/register", { username, email, password });
+        await axios.post("http://auth-service:8005/api/auth/register", { username, email, password });
         res.status(201).json({ 'message': "User Registered" });
     } catch (error) {
         console.log("Register Error: ", error);
@@ -14,7 +14,7 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     const { email, password } = req.body;
     try {
-        const loginRes = await axios.post("http://localhost:8005/api/auth/login", { email, password });
+        const loginRes = await axios.post("http://auth-service:8005/api/auth/login", { email, password });
 
         const refreshToken = loginRes.data.refresh;
         const accessToken = loginRes.data.access;
@@ -44,7 +44,7 @@ const google = async (req, res) => {
     try {
         const { code } = req.body;
 
-        const loginRes = await axios.post("http://localhost:8005/api/auth/google", { code }, { withCredentials: true });
+        const loginRes = await axios.post("http://auth-service:8005/api/auth/google", { code }, { withCredentials: true });
 
         const { refreshToken, accessToken, user } = loginRes.data;
 
@@ -71,7 +71,7 @@ const refresh = async (req, res) => {
     const refreshToken = req.cookies.refreshToken;
     //console.log("Token with request: ", refreshToken);
     try {
-        const refreshRes = await axios.post("http://localhost:8005/api/auth/refresh", { refreshToken });
+        const refreshRes = await axios.post("http://auth-service:8005/api/auth/refresh", { refreshToken });
         const accessToken = refreshRes.data.access;
         
         res.status(201).json({

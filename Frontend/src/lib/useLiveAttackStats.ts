@@ -64,7 +64,7 @@ export function useLiveAttackStats() {
             if (!isMounted) return;
 
             try {
-                ws = new WebSocket(`ws://${window.location.host}/ws/logs/`);
+                ws = new WebSocket(`ws://localhost:8001/ws/logs/`);
 
                 ws.onopen = () => {
                     if (isMounted) {
