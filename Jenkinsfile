@@ -106,6 +106,26 @@ pipeline {
             }
         }
         
+        stage('Load Images to Minikube') {
+            steps {
+                echo 'Loading Docker images directly to Minikube...'
+                script {
+                    // Load images from local Docker to Minikube
+                    // This bypasses Docker Hub pull issues
+                    bat """
+                        minikube image load ${DOCKER_USERNAME}/frontend:latest -p project
+                        minikube image load ${DOCKER_USERNAME}/gateway:latest -p project
+                        minikube image load ${DOCKER_USERNAME}/auth-service:latest -p project
+                        minikube image load ${DOCKER_USERNAME}/log-service:latest -p project
+                        minikube image load ${DOCKER_USERNAME}/ml-service:latest -p project
+                        minikube image load ${DOCKER_USERNAME}/etl-service:latest -p project
+                        minikube image load ${DOCKER_USERNAME}/data-ingestion:latest -p project
+                    """
+                }
+                echo 'Images loaded to Minikube!'
+            }
+        }
+        
         stage('Deploy to Minikube') {
             steps {
                 echo 'Deploying to Kubernetes (Minikube)...'
