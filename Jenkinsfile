@@ -25,8 +25,15 @@ pipeline {
         
         stage('Build Docker Images') {
             steps {
-                echo 'Building Docker images for all microservices...'
+                echo 'Building Docker images in Minikube...'
                 script {
+                    // Configure to use Minikube Docker daemon
+                    bat """
+                        @echo off
+                        echo Configuring Docker to use Minikube daemon...
+                        for /f "tokens=*" %%i in ('minikube -p project docker-env') do %%i
+                    """
+                    
                     // Build all images in parallel for faster builds
                     parallel(
                         'Frontend': {
