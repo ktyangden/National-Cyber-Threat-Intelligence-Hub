@@ -1,19 +1,15 @@
+pipeline {
+    agent any
+    
+    environment {
+        DOCKER_REGISTRY = 'docker.io'
+        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
+        DOCKER_USERNAME = 'harshwardhan19'
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        K8S_NAMESPACE = 'default'
+    }
     
     stages {
-        stage('Setup Minikube Docker') {
-            steps {
-                echo 'Configuring Docker to use Minikube daemon...'
-                script {
-                    // Get Minikube Docker environment variables
-                    bat """
-                        @echo off
-                        for /f "tokens=*" %%i in ('minikube -p ${MINIKUBE_PROFILE} docker-env --shell cmd') do set %%i
-                        echo Docker configured to use Minikube daemon
-                    """
-                }
-            }
-        }
-        
         stage('Checkout Code') {
             steps {
                 echo 'Checking out code from GitHub...'
