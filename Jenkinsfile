@@ -106,6 +106,32 @@ pipeline {
             }
         }
         
+        stage('Load Images to Minikube') {
+            steps {
+                echo 'Loading Docker images into Minikube nodes...'
+                script {
+                    bat """
+                        minikube -p project image load harshwardhan19/frontend:${IMAGE_TAG}
+                        minikube -p project image load harshwardhan19/gateway:${IMAGE_TAG}
+                        minikube -p project image load harshwardhan19/auth-service:${IMAGE_TAG}
+                        minikube -p project image load harshwardhan19/log-service:${IMAGE_TAG}
+                        minikube -p project image load harshwardhan19/ml-service:${IMAGE_TAG}
+                        minikube -p project image load harshwardhan19/etl-service:${IMAGE_TAG}
+                        minikube -p project image load harshwardhan19/data-ingestion:${IMAGE_TAG}
+                        
+                        minikube -p project image load harshwardhan19/frontend:latest
+                        minikube -p project image load harshwardhan19/gateway:latest
+                        minikube -p project image load harshwardhan19/auth-service:latest
+                        minikube -p project image load harshwardhan19/log-service:latest
+                        minikube -p project image load harshwardhan19/ml-service:latest
+                        minikube -p project image load harshwardhan19/etl-service:latest
+                        minikube -p project image load harshwardhan19/data-ingestion:latest
+                    """
+                }
+                echo 'All images loaded into Minikube!'
+            }
+        }
+        
         stage('Deploy to Minikube') {
             steps {
                 echo 'Deploying to Kubernetes (Minikube)...'
@@ -124,15 +150,15 @@ pipeline {
                         kubectl --kubeconfig="${kubeconfigPath}" apply -f Pipeline/data-ingestion.yaml --validate=false
                     """
                     
-                    // Force Minikube to re-pull images by deleting cached images and restarting
+                    // Force rolling update to pull latest images
                     bat """
-                        echo Forcing image re-pull...
-                        kubectl --kubeconfig="${kubeconfigPath}" delete pods --all -n ${K8S_NAMESPACE}
-                    """
-                    
-                    // Wait for pods to be recreated with fresh images
-                    bat """
-                        timeout /t 5 /nobreak
+                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/frontend -n ${K8S_NAMESPACE}
+                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/gateway -n ${K8S_NAMESPACE}
+                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/auth-service -n ${K8S_NAMESPACE}
+                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/log-service -n ${K8S_NAMESPACE}
+                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/ml-service -n ${K8S_NAMESPACE}
+                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/etl-service -n ${K8S_NAMESPACE}
+                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/data-ingestion -n ${K8S_NAMESPACE}
                     """
                 }
                 echo 'Deployment commands executed!'

@@ -24,7 +24,7 @@ spec:
       containers:
       - name: log-service
         image: harshwardhan19/log-service:latest
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8001
 ---
