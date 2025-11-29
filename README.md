@@ -1,7 +1,5 @@
 # 🛡️ National Cyber Threat Intelligence Hub
 
-| **Project Title** | National Cyber Threat Intelligence Hub | 
-
 ***
 
 ## 🌟 Project Overview
