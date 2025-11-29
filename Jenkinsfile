@@ -1,20 +1,19 @@
-pipeline {
-    agent any
-    
-    environment {
-        // Docker Hub credentials (stored in Jenkins credentials)
-        DOCKER_REGISTRY = 'docker.io'
-        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
-        DOCKER_USERNAME = 'harshwardhan19'  
-        
-        // Image tag - uses Jenkins build number for versioning
-        IMAGE_TAG = "${BUILD_NUMBER}"
-        
-        // Kubernetes namespace (using default for simplicity)
-        K8S_NAMESPACE = 'default'
-    }
     
     stages {
+        stage('Setup Minikube Docker') {
+            steps {
+                echo 'Configuring Docker to use Minikube daemon...'
+                script {
+                    // Get Minikube Docker environment variables
+                    bat """
+                        @echo off
+                        for /f "tokens=*" %%i in ('minikube -p ${MINIKUBE_PROFILE} docker-env --shell cmd') do set %%i
+                        echo Docker configured to use Minikube daemon
+                    """
+                }
+            }
+        }
+        
         stage('Checkout Code') {
             steps {
                 echo 'Checking out code from GitHub...'
@@ -103,26 +102,6 @@ pipeline {
                     }
                 }
                 echo 'All images pushed to registry!'
-            }
-        }
-        
-        stage('Load Images to Minikube') {
-            steps {
-                echo 'Loading Docker images directly to Minikube...'
-                script {
-                    // Load images from local Docker to Minikube
-                    // This bypasses Docker Hub pull issues
-                    bat """
-                        minikube image load ${DOCKER_USERNAME}/frontend:latest -p project
-                        minikube image load ${DOCKER_USERNAME}/gateway:latest -p project
-                        minikube image load ${DOCKER_USERNAME}/auth-service:latest -p project
-                        minikube image load ${DOCKER_USERNAME}/log-service:latest -p project
-                        minikube image load ${DOCKER_USERNAME}/ml-service:latest -p project
-                        minikube image load ${DOCKER_USERNAME}/etl-service:latest -p project
-                        minikube image load ${DOCKER_USERNAME}/data-ingestion:latest -p project
-                    """
-                }
-                echo 'Images loaded to Minikube!'
             }
         }
         
