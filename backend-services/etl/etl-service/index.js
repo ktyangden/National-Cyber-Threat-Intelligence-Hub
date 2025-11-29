@@ -4,7 +4,7 @@ import { Kafka } from "kafkajs";
 import axios from "axios";
 import dotenv from 'dotenv';
 // Kafka consumer 
-const kafka = new Kafka({ brokers: ["localhost:9092"] });
+const kafka = new Kafka({ brokers: ["192.168.67.1:9092"] });
 const consumer = kafka.consumer({ groupId: "log-consumers" });
 
 // Store logs in-memory for the last 1 minute
@@ -65,7 +65,7 @@ await consumer.run({
 
     // Send log to ML-service for Classification
     try {
-      const res = await axios.post(`http://localhost:${GatewayPORT}/micro/ml`, payload);
+      const res = await axios.post(`http://gateway:${GatewayPORT}/micro/ml`, payload);
 
       const classifiedLog = res.data?.classifiedLog;
 
@@ -81,7 +81,7 @@ await consumer.run({
         console.log("Sending request to gateway");
         console.log("-----------------------------------------------------------------------------------------------------------------")
 
-        await axios.post(`http://localhost:${GatewayPORT}/micro/log`, { classifiedLog });
+        await axios.post(`http://gateway:${GatewayPORT}/micro/log`, { classifiedLog });
       } catch (err) {
         console.error("Error calling Gateway|Log:", err.message);
       }

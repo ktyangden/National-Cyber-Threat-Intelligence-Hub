@@ -39,7 +39,7 @@ module.exports = async function (req, res, next) {
       console.log(`Fetching new G2S token from Auth Service for ${targetService}...`);
 
       const response = await axios.post(
-        "http://localhost:8005/micro/auth/getG2S",
+        "http://auth-service:8005/micro/auth/getG2S",
         { targetService }
       );
 

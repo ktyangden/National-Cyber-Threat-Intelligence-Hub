@@ -3,7 +3,7 @@ const axios = require('axios');
 const ml = async (req, res) => {
     const payload  = req.body;
     try {        
-        const mlRes = await axios.post("http://localhost:8000/predict", payload, {headers: { Authorization: `Bearer ${req.g2sToken}`}});
+        const mlRes = await axios.post("http://ml-service:8000/predict", payload, {headers: { Authorization: `Bearer ${req.g2sToken}`}});
         res.status(201).json({ 'classifiedLog':mlRes.data });
     } catch (error) {
         console.log("Server Error: ", error);
@@ -28,7 +28,7 @@ const log = async (req, res) => {
         console.log("-----------------------------------------------------------------------------------------------------------------")
 
         // Log service expects { classifiedLog: ... } format
-        await axios.post("http://localhost:8001/send-log", { classifiedLog }, {headers: { Authorization: `Bearer ${req.g2sToken}`}});
+        await axios.post("http://ml-service:8001/send-log", { classifiedLog }, {headers: { Authorization: `Bearer ${req.g2sToken}`}});
         res.status(201).json({ 'message': "Success" });
 
     } catch (error) {
@@ -82,7 +82,7 @@ const getPhishingDomains = async (req, res) => {
 const getCountryCounts = async (req, res) => {
     try {
         // Proxy request to log-service (no auth needed for GET endpoint)
-        const response = await axios.get("http://localhost:8001/country-counts", {
+        const response = await axios.get("http://log-service:8001/country-counts", {
             headers: {
                 'Accept': 'application/json',
             },

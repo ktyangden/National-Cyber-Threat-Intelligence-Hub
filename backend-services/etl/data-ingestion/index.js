@@ -3,7 +3,7 @@
 import fs from "fs";
 import { Kafka } from "kafkajs";
 
-const kafka = new Kafka({ brokers: ["localhost:9092"] });
+const kafka = new Kafka({ brokers: ["192.168.67.1:9092"] });
 const producer = kafka.producer();
 
 async function streamLogs() {
