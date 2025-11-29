@@ -25,101 +25,24 @@ pipeline {
         
         stage('Build Docker Images') {
             steps {
-                echo 'Building Docker images in Minikube...'
+                echo 'Building Docker images in Minikube Docker daemon...'
                 script {
-                    // Configure to use Minikube Docker daemon
+                    // Build all images in Minikube's Docker (sequential to maintain env)
                     powershell """
                         Write-Host "Configuring Docker to use Minikube daemon..."
                         & minikube -p project docker-env | Invoke-Expression
-                        Write-Host "Docker configured to use Minikube"
-                    """
-                    
-                    // Build all images in parallel for faster builds
-                    parallel(
-                        'Frontend': {
-                            echo 'Building Frontend...'
-                            bat """
-                                docker build -t ${DOCKER_USERNAME}/frontend:${IMAGE_TAG} -t ${DOCKER_USERNAME}/frontend:latest ./Frontend
-                            """
-                        },
-                        'Gateway': {
-                            echo 'Building Gateway...'
-                            bat """
-                                docker build -t ${DOCKER_USERNAME}/gateway:${IMAGE_TAG} -t ${DOCKER_USERNAME}/gateway:latest ./backend-services/gateway
-                            """
-                        },
-                        'Auth Service': {
-                            echo 'Building Auth Service...'
-                            bat """
-                                docker build -t ${DOCKER_USERNAME}/auth-service:${IMAGE_TAG} -t ${DOCKER_USERNAME}/auth-service:latest ./backend-services/auth-service
-                            """
-                        },
-                        'Log Service': {
-                            echo 'Building Log Service...'
-                            bat """
-                                docker build -t ${DOCKER_USERNAME}/log-service:${IMAGE_TAG} -t ${DOCKER_USERNAME}/log-service:latest ./backend-services/log-service
-                            """
-                        },
-                        'ML Service': {
-                            echo 'Building ML Service...'
-                            bat """
-                                docker build -t ${DOCKER_USERNAME}/ml-service:${IMAGE_TAG} -t ${DOCKER_USERNAME}/ml-service:latest ./backend-services/ml-service
-                            """
-                        },
-                        'ETL Service': {
-                            echo 'Building ETL Service...'
-                            bat """
-                                docker build -t ${DOCKER_USERNAME}/etl-service:${IMAGE_TAG} -t ${DOCKER_USERNAME}/etl-service:latest ./backend-services/etl/etl-service
-                            """
-                        },
-                        'Data Ingestion': {
-                            echo 'Building Data Ingestion...'
-                            bat """
-                                docker build -t ${DOCKER_USERNAME}/data-ingestion:${IMAGE_TAG} -t ${DOCKER_USERNAME}/data-ingestion:latest ./backend-services/etl/data-ingestion
-                            """
-                        }
-                    )
-                }
-                echo 'All images built successfully!'
-            }
-        }
-        
-        stage('Push Images to Docker Hub') {
-            steps {
-                echo 'Pushing images to Docker Hub...'
-                script {
-                    // Login to Docker Hub using credentials from Jenkins
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS_ID) {
-                        // Push all images
-                        bat """
-                            docker push ${DOCKER_USERNAME}/frontend:${IMAGE_TAG}
-                            docker push ${DOCKER_USERNAME}/frontend:latest
-                            docker push ${DOCKER_USERNAME}/gateway:${IMAGE_TAG}
-                            docker push ${DOCKER_USERNAME}/gateway:latest
-                            docker push ${DOCKER_USERNAME}/auth-service:${IMAGE_TAG}
-                            docker push ${DOCKER_USERNAME}/auth-service:latest
-                            docker push ${DOCKER_USERNAME}/log-service:${IMAGE_TAG}
-                            docker push ${DOCKER_USERNAME}/log-service:latest
-                            docker push ${DOCKER_USERNAME}/ml-service:${IMAGE_TAG}
-                            docker push ${DOCKER_USERNAME}/ml-service:latest
-                            docker push ${DOCKER_USERNAME}/etl-service:${IMAGE_TAG}
-                            docker push ${DOCKER_USERNAME}/etl-service:latest
-                            docker push ${DOCKER_USERNAME}/data-ingestion:${IMAGE_TAG}
-                            docker push ${DOCKER_USERNAME}/data-ingestion:latest
-                        """
-                    }
-                }
-                echo 'All images pushed to registry!'
-            }
-        }
-        
-        stage('Load Images to Minikube') {
-            steps {
-                echo 'Loading Docker images into Minikube nodes...'
-                script {
-                    bat """
-                        minikube -p project image load harshwardhan19/frontend:${IMAGE_TAG}
-                        minikube -p project image load harshwardhan19/gateway:${IMAGE_TAG}
+                        
+                        Write-Host "Building all images..."
+                        docker build -t ${env.DOCKER_USERNAME}/frontend:${env.IMAGE_TAG} -t ${env.DOCKER_USERNAME}/frontend:latest ./Frontend
+                        docker build -t ${env.DOCKER_USERNAME}/gateway:${env.IMAGE_TAG} -t ${env.DOCKER_USERNAME}/gateway:latest ./backend-services/gateway
+                        docker build -t ${env.DOCKER_USERNAME}/auth-service:${env.IMAGE_TAG} -t ${env.DOCKER_USERNAME}/auth-service:latest ./backend-services/auth-service
+                        docker build -t ${env.DOCKER_USERNAME}/log-service:${env.IMAGE_TAG} -t ${env.DOCKER_USERNAME}/log-service:latest ./backend-services/log-service
+                        docker build -t ${env.DOCKER_USERNAME}/ml-service:${env.IMAGE_TAG} -t ${env.DOCKER_USERNAME}/ml-service:latest ./backend-services/ml-service
+                        docker build -t ${env.DOCKER_USERNAME}/etl-service:${env.IMAGE_TAG} -t ${env.DOCKER_USERNAME}/etl-service:latest ./backend-services/etl/etl-service
+                        docker build -t ${env.DOCKER_USERNAME}/data-ingestion:${env.IMAGE_TAG} -t ${env.DOCKER_USERNAME}/data-ingestion:latest ./backend-services/etl/data-ingestion
+                        
+                        Write-Host "All images built in Minikube!"
+                        docker images | Select-String harshwardhan19
                         minikube -p project image load harshwardhan19/auth-service:${IMAGE_TAG}
                         minikube -p project image load harshwardhan19/log-service:${IMAGE_TAG}
                         minikube -p project image load harshwardhan19/ml-service:${IMAGE_TAG}
