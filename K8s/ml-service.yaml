@@ -24,7 +24,7 @@ spec:
       containers:
       - name: ml-service
         image: harshwardhan19/ml-service:latest
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8000
 ---

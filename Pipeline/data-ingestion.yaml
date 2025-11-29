@@ -24,7 +24,7 @@ spec:
       containers:
       - name: data-ingestion
         image: harshwardhan19/data-ingestion:latest
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
 ---
 apiVersion: v1
 kind: Service

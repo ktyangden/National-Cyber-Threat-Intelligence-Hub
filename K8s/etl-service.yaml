@@ -24,7 +24,7 @@ spec:
       containers:
       - name: etl-service
         image: harshwardhan19/etl-service:latest
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
 ---
 apiVersion: v1
 kind: Service
