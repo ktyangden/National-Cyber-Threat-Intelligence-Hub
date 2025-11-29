@@ -28,10 +28,10 @@ pipeline {
                 echo 'Building Docker images in Minikube...'
                 script {
                     // Configure to use Minikube Docker daemon
-                    bat """
-                        @echo off
-                        echo Configuring Docker to use Minikube daemon...
-                        for /f "tokens=*" %%i in ('minikube -p project docker-env') do %%i
+                    powershell """
+                        Write-Host "Configuring Docker to use Minikube daemon..."
+                        & minikube -p project docker-env | Invoke-Expression
+                        Write-Host "Docker configured to use Minikube"
                     """
                     
                     // Build all images in parallel for faster builds
