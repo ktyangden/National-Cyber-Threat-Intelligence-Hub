@@ -24,9 +24,9 @@ spec:
       containers:
       - name: auth-service
         image: harshwardhan19/auth-service:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
-        - containerPort: 3001
+        - containerPort: 8005
 ---
 apiVersion: v1
 kind: Service
@@ -37,6 +37,6 @@ spec:
     app: auth-service
   ports:
   - protocol: TCP
-    port: 3001
-    targetPort: 3001
+    port: 8005
+    targetPort: 8005
   type: ClusterIP

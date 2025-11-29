@@ -24,9 +24,7 @@ spec:
       containers:
       - name: data-ingestion
         image: harshwardhan19/data-ingestion:latest
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 8004
+        imagePullPolicy: Always
 ---
 apiVersion: v1
 kind: Service
@@ -37,6 +35,6 @@ spec:
     app: data-ingestion
   ports:
   - protocol: TCP
-    port: 8004
-    targetPort: 8004
+    port: 9092
+    targetPort: 9092
   type: ClusterIP

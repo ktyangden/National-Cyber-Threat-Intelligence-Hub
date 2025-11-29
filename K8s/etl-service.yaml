@@ -24,9 +24,7 @@ spec:
       containers:
       - name: etl-service
         image: harshwardhan19/etl-service:latest
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 8003
+        imagePullPolicy: Always
 ---
 apiVersion: v1
 kind: Service
@@ -37,6 +35,6 @@ spec:
     app: etl-service
   ports:
   - protocol: TCP
-    port: 8003
-    targetPort: 8003
+    port: 3003
+    targetPort: 3003
   type: ClusterIP
