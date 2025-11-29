@@ -124,39 +124,15 @@ pipeline {
                         kubectl --kubeconfig="${kubeconfigPath}" apply -f Pipeline/data-ingestion.yaml --validate=false
                     """
                     
-                    // Load images directly into Minikube (bypass Docker Hub pull)
+                    // Force Minikube to re-pull images by deleting cached images and restarting
                     bat """
-                        echo Loading images into Minikube...
-                        minikube -p project image load ${DOCKER_USERNAME}/frontend:${IMAGE_TAG}
-                        minikube -p project image load ${DOCKER_USERNAME}/gateway:${IMAGE_TAG}
-                        minikube -p project image load ${DOCKER_USERNAME}/auth-service:${IMAGE_TAG}
-                        minikube -p project image load ${DOCKER_USERNAME}/log-service:${IMAGE_TAG}
-                        minikube -p project image load ${DOCKER_USERNAME}/ml-service:${IMAGE_TAG}
-                        minikube -p project image load ${DOCKER_USERNAME}/etl-service:${IMAGE_TAG}
-                        minikube -p project image load ${DOCKER_USERNAME}/data-ingestion:${IMAGE_TAG}
-                        echo Image loading complete!
+                        echo Forcing image re-pull...
+                        kubectl --kubeconfig="${kubeconfigPath}" delete pods --all -n ${K8S_NAMESPACE}
                     """
                     
-                    // Also load :latest tags
+                    // Wait for pods to be recreated with fresh images
                     bat """
-                        minikube -p project image load ${DOCKER_USERNAME}/frontend:latest
-                        minikube -p project image load ${DOCKER_USERNAME}/gateway:latest
-                        minikube -p project image load ${DOCKER_USERNAME}/auth-service:latest
-                        minikube -p project image load ${DOCKER_USERNAME}/log-service:latest
-                        minikube -p project image load ${DOCKER_USERNAME}/ml-service:latest
-                        minikube -p project image load ${DOCKER_USERNAME}/etl-service:latest
-                        minikube -p project image load ${DOCKER_USERNAME}/data-ingestion:latest
-                    """
-                    
-                    // Restart deployments to use loaded images  
-                    bat """
-                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/frontend -n ${K8S_NAMESPACE}
-                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/gateway -n ${K8S_NAMESPACE}
-                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/auth-service -n ${K8S_NAMESPACE}
-                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/log-service -n ${K8S_NAMESPACE}
-                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/ml-service -n ${K8S_NAMESPACE}
-                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/etl-service -n ${K8S_NAMESPACE}
-                        kubectl --kubeconfig="${kubeconfigPath}" rollout restart deployment/data-ingestion -n ${K8S_NAMESPACE}
+                        timeout /t 5 /nobreak
                     """
                 }
                 echo 'Deployment commands executed!'

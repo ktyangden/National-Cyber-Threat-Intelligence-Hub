@@ -24,7 +24,7 @@ spec:
       containers:
       - name: auth-service
         image: harshwardhan19/auth-service:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 8005
 ---
